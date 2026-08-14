@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Attendance</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="login-page">
+
+    <div class="login-box">
+
+        <h1>Smart Attendance</h1>
+        <p>Student Attendance Management</p>
+
+        <form action="/api/login" method="POST">
+
+            <label>Department</label>
+
+            <select name="department" required>
+                <option value="">Select Department</option>
+                <option value="CAI">CAI</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+            </select>
+
+            <label>Password</label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter password"
+                required
+            >
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+    </div>
+
+</body>
+</html>

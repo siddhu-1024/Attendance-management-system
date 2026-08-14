@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Attendance Dashboard</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+
+        <h2>Smart Attendance</h2>
+
+        <span>CAI Department</span>
+
+    </header>
+
+
+    <main class="dashboard">
+
+        <h1>Attendance Dashboard</h1>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Total Students</h3>
+                <strong id="totalStudents">0</strong>
+            </div>
+
+            <div class="card">
+                <h3>Present</h3>
+                <strong id="presentCount">0</strong>
+            </div>
+
+            <div class="card">
+                <h3>Absent</h3>
+                <strong id="absentCount">0</strong>
+            </div>
+
+            <div class="card">
+                <h3>Attendance</h3>
+                <strong id="attendancePercent">0%</strong>
+            </div>
+
+        </div>
+
+
+        <section class="attendance-box">
+
+            <div class="section-head">
+
+                <h2>Mark Attendance</h2>
+
+                <button onclick="saveAttendance()">
+                    Save Attendance
+                </button>
+
+            </div>
+
+
+            <input
+                id="search"
+                type="text"
+                placeholder="Search student..."
+                onkeyup="searchStudents()"
+            >
+
+
+            <div class="table-area">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="studentTable">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <section class="low-box">
+
+            <h2>⚠️ Low Attendance Students</h2>
+
+            <div id="lowStudents">
+                Loading...
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="/static/script.js"></script>
+
+</body>
+</html>
