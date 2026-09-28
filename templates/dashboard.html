@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Attendance & Period Management System | Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="app-body">
+
+    <!-- TOP HEADER -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="college-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+            </div>
+            <div class="college-info">
+                <h2 id="headerCollegeName">Smart Classroom Institute of Technology</h2>
+                <span id="headerDeptName" class="dept-badge">CAI • Artificial Intelligence</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="live-clock" id="liveClock">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span id="currentDateDisplay">--</span>
+            </div>
+
+            <div class="user-profile-menu">
+                <div class="user-avatar" id="userAvatar">FAC</div>
+                <div class="user-details">
+                    <span class="user-name" id="userNameDisplay">Faculty Incharge</span>
+                    <span class="user-role" id="userRoleDisplay">Faculty • CAI</span>
+                </div>
+            </div>
+
+            <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()" title="Sign Out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span class="btn-text">Logout</span>
+            </button>
+        </div>
+    </header>
+
+
+    <!-- NAVIGATION TABS -->
+    <nav class="app-nav">
+        <div class="nav-container" id="mainNavTabs">
+            <!-- STAFF / CTPO / ADMIN NAV TABS -->
+            <button class="nav-tab active staff-only" data-tab="mark-attendance" onclick="switchTab('mark-attendance')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span>Mark Attendance</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="periods-timetable" onclick="switchTab('periods-timetable')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Periods & Timetable</span>
+                <span class="badge-pill info" id="navCtpoBadge">CTPO</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="dashboard-overview" onclick="switchTab('dashboard-overview')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="attendance-history" onclick="switchTab('attendance-history')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+                <span>Attendance History</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="student-profile" onclick="switchTab('student-profile')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Student Profiles & Check</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="low-attendance" onclick="switchTab('low-attendance')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Low Attendance</span>
+                <span class="badge-pill danger" id="navLowBadge">0</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="export-reports" onclick="switchTab('export-reports')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export & Reports</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="roster-management" onclick="switchTab('roster-management')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Roster & Subjects</span>
+            </button>
+
+            <button class="nav-tab staff-only" data-tab="system-settings" onclick="switchTab('system-settings')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Settings</span>
+            </button>
+
+            <!-- STUDENT EXCLUSIVE NAV TABS -->
+            <button class="nav-tab student-only hidden active" data-tab="student-dashboard" onclick="switchTab('student-dashboard')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+                <span>My Attendance Dashboard</span>
+            </button>
+
+            <button class="nav-tab student-only hidden" data-tab="student-schedule" onclick="switchTab('student-schedule')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>My Timetable & Periods</span>
+            </button>
+
+            <button class="nav-tab student-only hidden" data-tab="student-history-log" onclick="switchTab('student-history-log')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                </svg>
+                <span>Attendance Log</span>
+            </button>
+        </div>
+    </nav>
+
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="main-content">
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: MARK ATTENDANCE (CTPO / FACULTY WORKFLOW) -->
+        <!-- ================================================================= -->
+        <div id="tab-mark-attendance" class="tab-pane active">
+
+            <!-- SESSION CONFIGURATION CARD -->
+            <div class="card session-config-card">
+                <div class="session-card-header">
+                    <div class="title-with-badge">
+                        <h3>Attendance Session Setup</h3>
+                        <span class="session-badge" id="sessionModeBadge">New Session</span>
+                        <span class="ctpo-tag-pill" id="ctpoInchargeTag">CTPO Attendance Module</span>
+                    </div>
+                    <div class="session-actions-top">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="resetToNewSession()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                            </svg>
+                            <span>New Session</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CTPO Period Timetable Link Bar -->
+                <div class="ctpo-period-helper-bar" id="ctpoPeriodHelperBar">
+                    <div class="helper-info">
+                        <span class="helper-badge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            CTPO Timetable Link:
+                        </span>
+                        <span id="ctpoHelperScheduledInfo">Period 1 (09:00 - 09:50 AM) • Mapped: <strong>Data Structures</strong></span>
+                    </div>
+                    <div class="helper-actions">
+                        <button class="btn btn-xs btn-outline-primary" type="button" onclick="loadSubjectsForCurrentPeriodTime()">
+                            <span>List All Subjects for This Time</span>
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary" type="button" onclick="switchTab('periods-timetable')">
+                            <span>Edit in CTPO Timetable</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="session-config-grid">
+                    <div class="form-field">
+                        <label for="sessionDate">Date</label>
+                        <div class="input-group">
+                            <input type="date" id="sessionDate" name="sessionDate" title="Session Date" aria-label="Session Date" class="form-control" onchange="onSessionConfigChange()">
+                            <button class="btn btn-secondary btn-icon" onclick="setTodayDate()" title="Set Today">Today</button>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="sessionPeriod">Period / Session Time</label>
+                        <select id="sessionPeriod" name="sessionPeriod" title="Period / Session Time" aria-label="Period / Session Time" class="form-control" onchange="onPeriodChange()">
+                            <option value="1">Period 1 (09:00 AM - 09:50 AM)</option>
+                            <option value="2">Period 2 (09:50 AM - 10:40 AM)</option>
+                            <option value="3">Period 3 (10:50 AM - 11:40 AM)</option>
+                            <option value="4">Period 4 (11:40 AM - 12:30 PM)</option>
+                            <option value="5">Period 5 (01:20 PM - 02:10 PM)</option>
+                            <option value="6">Period 6 (02:10 PM - 03:00 PM)</option>
+                            <option value="7">Period 7 (03:00 PM - 03:50 PM)</option>
+                            <option value="8">Period 8 (03:50 PM - 04:40 PM)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="sessionSubject">Subject for This Period</label>
+                        <select id="sessionSubject" name="sessionSubject" title="Subject for This Period" aria-label="Subject for This Period" class="form-control" onchange="onSessionConfigChange()">
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="sessionSection">Class / Section</label>
+                        <select id="sessionSection" name="sessionSection" title="Class / Section" aria-label="Class / Section" class="form-control" onchange="onSectionChange()">
+                            <!-- Dynamically loaded -->
+                        </select>
+                    </div>
+
+                    <div class="form-field span-full">
+                        <label for="sessionTopic">Topic / Lecture Remarks (Optional)</label>
+                        <input type="text" id="sessionTopic" name="sessionTopic" title="Topic / Lecture Remarks" aria-label="Topic / Lecture Remarks" class="form-control" placeholder="e.g., Unit 2: Binary Search Trees & AVL Rotations">
+                    </div>
+                </div>
+
+                <!-- Session Exist Alert if already saved -->
+                <div id="existingSessionNotice" class="alert alert-info hidden">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <div class="notice-content">
+                        <strong>Notice:</strong> An attendance record already exists for this Date, Subject, Section, and Period. 
+                        Saved attendance has been loaded for editing.
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- LIVE ATTENDANCE SUMMARY CARDS -->
+            <div class="cards summary-cards">
+                <div class="stat-card">
+                    <div class="stat-icon icon-total">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Total Students</span>
+                        <strong class="stat-value" id="liveTotalStudents">0</strong>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-present">
+                    <div class="stat-icon icon-present">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Present</span>
+                        <strong class="stat-value text-present" id="livePresentCount">0</strong>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-absent">
+                    <div class="stat-icon icon-absent">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Absent</span>
+                        <strong class="stat-value text-absent" id="liveAbsentCount">0</strong>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-percentage">
+                    <div class="stat-icon icon-pct">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="5" x2="5" y2="19"></line>
+                            <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                            <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Period Attendance %</span>
+                        <div class="pct-val-wrap">
+                            <strong class="stat-value" id="liveAttendancePercent">0.00%</strong>
+                            <span class="threshold-indicator" id="liveThresholdFlag" title="Attendance Status"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ATTENDANCE ROSTER & MARKING TABLE -->
+            <div class="card roster-card">
+                
+                <!-- Table Controls Toolbar -->
+                <div class="roster-toolbar">
+                    <div class="toolbar-left">
+                        <div class="search-box">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input
+                                id="studentSearchInput"
+                                name="studentSearchInput"
+                                type="text"
+                                title="Search by name or roll number"
+                                aria-label="Search by name or roll number"
+                                placeholder="Search by name or roll number..."
+                                oninput="filterRosterTable()"
+                            >
+                            <button id="clearSearchBtn" class="clear-search-btn hidden" onclick="clearSearch()" title="Clear search">✕</button>
+                        </div>
+
+                        <!-- Status Filter Tabs -->
+                        <div class="filter-pills">
+                            <button class="pill active" data-filter="all" onclick="setRosterFilter('all')">
+                                All (<span id="filterCountAll">0</span>)
+                            </button>
+                            <button class="pill pill-present" data-filter="present" onclick="setRosterFilter('present')">
+                                Present (<span id="filterCountPresent">0</span>)
+                            </button>
+                            <button class="pill pill-absent" data-filter="absent" onclick="setRosterFilter('absent')">
+                                Absent (<span id="filterCountAbsent">0</span>)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-right">
+                        <div class="bulk-btn-group">
+                            <button class="btn btn-outline-success btn-sm" onclick="markAllPresent()" title="Mark all students present">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                <span>Mark All Present</span>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="clearAllAttendance()" title="Clear all to absent">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                <span>Clear All</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="invertSelection()" title="Invert current selections">
+                                <span>Invert</span>
+                            </button>
+                        </div>
+
+                        <button id="saveAttendanceBtn" class="btn btn-primary btn-save" onclick="saveAttendanceRecord()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            <span id="saveBtnText">Save CTPO Attendance</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="table-container">
+                    <table class="attendance-table" id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th class="col-w-60 th-center">S.No</th>
+                                <th class="col-w-170">Roll Number</th>
+                                <th>Student Name</th>
+                                <th class="col-w-140 th-center">Cumulative Rate</th>
+                                <th class="col-w-190 th-center">Period Attendance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentRosterBody">
+                            <!-- Populated dynamically -->
+                            <tr>
+                                <td colspan="5" class="table-loading">
+                                    <div class="spinner"></div>
+                                    <span>Loading student roster...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="roster-footer">
+                    <div class="roster-count-text">
+                        Showing <span id="visibleRosterCount">0</span> of <span id="totalRosterCount">0</span> enrolled students
+                    </div>
+                    <div class="marking-instruction">
+                        <span class="legend-item"><span class="box-checked">☑</span> Checked = <strong>Present</strong></span>
+                        <span class="legend-item"><span class="box-unchecked">☐</span> Unchecked = <strong>Absent</strong></span>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- POST-SAVE ATTENDANCE RESULT MODAL -->
+            <div id="saveSuccessModal" class="modal-backdrop hidden">
+                <div class="modal-card">
+                    <div class="modal-header bg-success-subtle">
+                        <div class="modal-icon-title">
+                            <div class="success-check-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3>Attendance Recorded Successfully</h3>
+                                <p class="modal-subtitle">Official Attendance Record has been saved in the system.</p>
+                            </div>
+                        </div>
+                        <button class="modal-close-btn" onclick="closeSaveSuccessModal()">✕</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Saved Summary Grid -->
+                        <div class="save-summary-grid">
+                            <div class="save-metric-item">
+                                <span class="label">Date</span>
+                                <strong id="savedDateVal">--</strong>
+                            </div>
+                            <div class="save-metric-item">
+                                <span class="label">Subject</span>
+                                <strong id="savedSubjectVal">--</strong>
+                            </div>
+                            <div class="save-metric-item">
+                                <span class="label">Section & Period</span>
+                                <strong id="savedSecPeriodVal">--</strong>
+                            </div>
+                            <div class="save-metric-item">
+                                <span class="label">Total Students</span>
+                                <strong id="savedTotalVal">0</strong>
+                            </div>
+                            <div class="save-metric-item text-present">
+                                <span class="label">Present</span>
+                                <strong id="savedPresentVal">0</strong>
+                            </div>
+                            <div class="save-metric-item text-absent">
+                                <span class="label">Absent</span>
+                                <strong id="savedAbsentVal">0</strong>
+                            </div>
+                            <div class="save-metric-item span-2">
+                                <span class="label">Attendance Rate</span>
+                                <strong class="text-primary" id="savedPercentageVal">0.00%</strong>
+                            </div>
+                        </div>
+
+                        <!-- Present vs Absent Breakdown Lists -->
+                        <div class="breakdown-columns">
+                            <div class="breakdown-box present-box">
+                                <div class="breakdown-box-header">
+                                    <span class="box-title">
+                                        Present Students (<span id="savedPresentCountBadge">0</span>)
+                                    </span>
+                                </div>
+                                <div class="breakdown-list" id="savedPresentList"></div>
+                            </div>
+
+                            <div class="breakdown-box absent-box">
+                                <div class="breakdown-box-header">
+                                    <span class="box-title">
+                                        Absent Students (<span id="savedAbsentCountBadge">0</span>)
+                                    </span>
+                                </div>
+                                <div class="breakdown-list" id="savedAbsentList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <div class="export-dropdown-group">
+                            <button class="btn btn-outline-primary" onclick="exportSavedSession('pdf')">PDF Report</button>
+                            <button class="btn btn-outline-success" onclick="exportSavedSession('excel')">Excel (.xlsx)</button>
+                            <button class="btn btn-outline-secondary" onclick="exportSavedSession('csv')">CSV</button>
+                        </div>
+                        <div class="action-btn-group">
+                            <button class="btn btn-primary" onclick="closeSaveSuccessModal()">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: PERIODS & TIMETABLE HUB (CTPO MANAGEMENT) -->
+        <!-- ================================================================= -->
+        <div id="tab-periods-timetable" class="tab-pane">
+            
+            <div class="dashboard-header-bar">
+                <div>
+                    <div class="title-with-badge">
+                        <h2>CTPO Period & Timetable Hub</h2>
+                        <span class="ctpo-tag-pill">CTPO Login In-Charge</span>
+                    </div>
+                    <p class="subtitle">Log in to CTPO to configure periods, map subjects to time slots, and launch instant period attendance</p>
+                </div>
+                <div class="quick-action-btns">
+                    <button class="btn btn-primary" onclick="openAddPeriodModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Add Period Slot</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="loadTimetable()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <span>Refresh Schedule</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Day of the Week Selector Bar -->
+            <div class="card day-selector-card">
+                <div class="day-selector-flex">
+                    <div class="day-tabs-group" id="timetableDayTabs">
+                        <button class="day-tab-btn active" data-day="Monday" onclick="selectTimetableDay('Monday')">Monday</button>
+                        <button class="day-tab-btn" data-day="Tuesday" onclick="selectTimetableDay('Tuesday')">Tuesday</button>
+                        <button class="day-tab-btn" data-day="Wednesday" onclick="selectTimetableDay('Wednesday')">Wednesday</button>
+                        <button class="day-tab-btn" data-day="Thursday" onclick="selectTimetableDay('Thursday')">Thursday</button>
+                        <button class="day-tab-btn" data-day="Friday" onclick="selectTimetableDay('Friday')">Friday</button>
+                        <button class="day-tab-btn" data-day="Saturday" onclick="selectTimetableDay('Saturday')">Saturday</button>
+                    </div>
+
+                    <div class="section-selector-group">
+                        <label for="timetableSectionSelect">Class Section:</label>
+                        <select id="timetableSectionSelect" name="timetableSectionSelect" title="Class Section" aria-label="Class Section" class="form-control form-control-sm" onchange="loadTimetable()">
+                            <option value="CAI-A" selected>CAI-A</option>
+                            <option value="CAI-B">CAI-B</option>
+                            <option value="CSE-A">CSE-A</option>
+                            <option value="ECE-A">ECE-A</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timetable Period Cards Grid -->
+            <div class="period-cards-grid" id="periodCardsGrid">
+                <!-- Populated dynamically with Period 1 to 8 cards -->
+            </div>
+
+            <!-- Subject Schedule Matrix Reference -->
+            <div class="card mt-4">
+                <div class="box-header-flex">
+                    <div>
+                        <h3>All Subjects Scheduled for <span id="currentDayTitleDisplay">Monday</span></h3>
+                        <p class="table-subtitle">All curriculum subjects scheduled across time slots in the CTPO timetable</p>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="exportCumulative('pdf')">Download Full Timetable PDF</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="daySubjectsTable">
+                        <thead>
+                            <tr>
+                                <th class="col-w-90">Period</th>
+                                <th class="col-w-170">Time Slot</th>
+                                <th>Subject Name</th>
+                                <th class="col-w-120">Code</th>
+                                <th>Faculty Incharge</th>
+                                <th class="col-w-110">Room / Lab</th>
+                                <th class="col-w-160 th-center">CTPO Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daySubjectsTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: DASHBOARD OVERVIEW -->
+        <!-- ================================================================= -->
+        <div id="tab-dashboard-overview" class="tab-pane">
+            
+            <div class="dashboard-header-bar">
+                <div>
+                    <h2>Academic Attendance Overview</h2>
+                    <p class="subtitle">Live metrics across departments, sessions, and active batches</p>
+                </div>
+                <div class="quick-action-btns">
+                    <button class="btn btn-primary" onclick="switchTab('mark-attendance')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Mark Attendance</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="loadDashboardStats()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Dashboard Stats -->
+            <div class="cards dashboard-stat-cards">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Today's Sessions</span>
+                        <strong class="stat-value" id="dashTodaySessions">0</strong>
+                        <span class="stat-subtext" id="dashTodayRate">0% Today Avg</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-teal">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Enrolled Students</span>
+                        <strong class="stat-value" id="dashTotalStudents">0</strong>
+                        <span class="stat-subtext">Active in Department</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Overall Term Rate</span>
+                        <strong class="stat-value text-success" id="dashOverallRate">0%</strong>
+                        <span class="stat-subtext" id="dashTotalClassesConducted">0 Classes Logged</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-danger">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-body">
+                        <span class="stat-label">Low Attendance</span>
+                        <strong class="stat-value text-danger" id="dashLowCount">0</strong>
+                        <span class="stat-subtext" id="dashThresholdText">Below 75% Threshold</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Column Section -->
+            <div class="dashboard-grid-layout">
+                <div class="card dash-box">
+                    <div class="box-header-flex">
+                        <h3>Recent Attendance Sessions</h3>
+                        <button class="btn-link" onclick="switchTab('attendance-history')">View Full History →</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Sec & Period</th>
+                                    <th>Total</th>
+                                    <th>Present</th>
+                                    <th>%</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashRecentSessionsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card dash-box">
+                    <div class="box-header-flex">
+                        <h3>⚠️ Defaulters Attention List</h3>
+                        <button class="btn-link" onclick="switchTab('low-attendance')">All Defaulters →</button>
+                    </div>
+                    <div id="dashLowAttendanceContainer" class="dash-low-list"></div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 4: ATTENDANCE HISTORY -->
+        <!-- ================================================================= -->
+        <div id="tab-attendance-history" class="tab-pane">
+            
+            <div class="card filter-card">
+                <div class="filter-header">
+                    <h3>Filter Attendance History</h3>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="resetHistoryFilters()">Clear Filters</button>
+                </div>
+
+                <div class="filter-controls-grid">
+                    <div class="form-field">
+                        <label for="histDateFrom">From Date</label>
+                        <input type="date" id="histDateFrom" name="histDateFrom" title="From Date" aria-label="From Date" class="form-control" onchange="loadAttendanceHistory()">
+                    </div>
+                    <div class="form-field">
+                        <label for="histDateTo">To Date</label>
+                        <input type="date" id="histDateTo" name="histDateTo" title="To Date" aria-label="To Date" class="form-control" onchange="loadAttendanceHistory()">
+                    </div>
+                    <div class="form-field">
+                        <label for="histPeriod">Period</label>
+                        <select id="histPeriod" name="histPeriod" title="Period" aria-label="Period" class="form-control" onchange="loadAttendanceHistory()">
+                            <option value="">All Periods</option>
+                            <option value="1">Period 1</option>
+                            <option value="2">Period 2</option>
+                            <option value="3">Period 3</option>
+                            <option value="4">Period 4</option>
+                            <option value="5">Period 5</option>
+                            <option value="6">Period 6</option>
+                            <option value="7">Period 7</option>
+                            <option value="8">Period 8</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="histSubject">Subject</label>
+                        <select id="histSubject" name="histSubject" title="Subject" aria-label="Subject" class="form-control" onchange="loadAttendanceHistory()">
+                            <option value="">All Subjects</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="histSection">Section</label>
+                        <select id="histSection" name="histSection" title="Section" aria-label="Section" class="form-control" onchange="loadAttendanceHistory()">
+                            <option value="">All Sections</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="histSearch">Search Keyword</label>
+                        <input type="text" id="histSearch" name="histSearch" title="Search Keyword" aria-label="Search Keyword" class="form-control" placeholder="Search topic or faculty..." oninput="loadAttendanceHistory()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card history-card">
+                <div class="box-header-flex">
+                    <div class="title-with-count">
+                        <h3>Logged Sessions</h3>
+                        <span class="badge-pill primary" id="historySessionsCount">0 Sessions</span>
+                    </div>
+                    <div class="history-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportFilteredCumulative('pdf')">
+                            <span>Export Summary PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Subject</th>
+                                <th>Section</th>
+                                <th>Period</th>
+                                <th>Topic</th>
+                                <th>Faculty</th>
+                                <th class="th-center">Total</th>
+                                <th class="th-center">Present</th>
+                                <th class="th-center">Absent</th>
+                                <th class="th-center">Rate %</th>
+                                <th class="th-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 5: STUDENT ATTENDANCE PROFILE & CHECKER -->
+        <!-- ================================================================= -->
+        <div id="tab-student-profile" class="tab-pane">
+            
+            <div class="card profile-select-card">
+                <div class="profile-select-grid">
+                    <div class="form-field span-2">
+                        <label for="profileStudentSelect">Check Student Attendance (Select from Roster)</label>
+                        <select id="profileStudentSelect" name="profileStudentSelect" title="Check Student Attendance" aria-label="Check Student Attendance" class="form-control form-control-lg" onchange="onStudentProfileSelected()">
+                            <option value="">-- Choose Student to View Complete Attendance Record --</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="profileRollSearch">Or Enter Roll Number</label>
+                        <div class="input-group">
+                            <input type="text" id="profileRollSearch" name="profileRollSearch" title="Enter Roll Number" aria-label="Enter Roll Number" class="form-control" placeholder="e.g. 256Q1A4317">
+                            <button class="btn btn-primary" onclick="searchStudentProfileByRoll()">Find</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="studentProfileDetails" class="hidden">
+                <div class="card student-info-card">
+                    <div class="student-info-flex">
+                        <div class="student-main-meta">
+                            <div class="student-avatar-badge" id="profAvatar">ST</div>
+                            <div>
+                                <h2 id="profStudentName">--</h2>
+                                <div class="student-sub-badges">
+                                    <span class="mono-badge" id="profRollNo">--</span>
+                                    <span class="info-badge" id="profDeptSec">CAI • CAI-A</span>
+                                    <span id="profStandingBadge" class="badge-pill success">Regular (>75%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="student-stat-pill-group">
+                            <div class="pill-stat">
+                                <span class="lbl">Total Classes</span>
+                                <strong id="profTotalClasses">0</strong>
+                            </div>
+                            <div class="pill-stat text-present">
+                                <span class="lbl">Attended</span>
+                                <strong id="profPresentClasses">0</strong>
+                            </div>
+                            <div class="pill-stat text-absent">
+                                <span class="lbl">Missed</span>
+                                <strong id="profAbsentClasses">0</strong>
+                            </div>
+                            <div class="pill-stat pill-highlight">
+                                <span class="lbl">Overall Rate</span>
+                                <strong id="profPercentage">0.0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid-layout">
+                    <div class="card">
+                        <div class="box-header-flex">
+                            <h3>Subject-wise Attendance Breakdown</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th class="th-center">Classes</th>
+                                        <th class="th-center">Present</th>
+                                        <th class="th-center">Rate %</th>
+                                        <th class="th-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profSubjectTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="box-header-flex">
+                            <h3>Session Attendance Log</h3>
+                        </div>
+                        <div class="table-container max-height-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Subject</th>
+                                        <th>Period</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profHistoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 6: LOW ATTENDANCE ALERTS & DEFAULTERS -->
+        <!-- ================================================================= -->
+        <div id="tab-low-attendance" class="tab-pane">
+            
+            <div class="alert alert-warning banner-alert">
+                <div class="alert-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <div class="alert-text">
+                    <strong>Official Academic Low Attendance Warning System</strong>
+                    <p>
+                        Students below the configured threshold (<strong id="lowAlertThresholdDisplay">75%</strong>) are flagged. 
+                        Shortfall indicates the minimum consecutive upcoming classes the student must attend to reach the minimum required attendance.
+                    </p>
+                </div>
+                <div class="alert-action">
+                    <button class="btn btn-outline-danger btn-sm" onclick="exportDefaultersReport('pdf')">
+                        <span>Download Defaulter Notice (PDF)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="box-header-flex">
+                    <div class="title-with-count">
+                        <h3>Low Attendance Students</h3>
+                        <span class="badge-pill danger" id="lowDefaultersCountBadge">0 Students</span>
+                    </div>
+                    <div class="export-btn-group">
+                        <button class="btn btn-sm btn-outline-success" onclick="exportDefaultersReport('excel')">Export Excel (.xlsx)</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="exportDefaultersReport('csv')">Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="lowStudentsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th>Section</th>
+                                <th class="th-center">Total Classes</th>
+                                <th class="th-center">Attended</th>
+                                <th class="th-center">Missed</th>
+                                <th class="th-center">Rate %</th>
+                                <th class="th-center">Class Shortfall</th>
+                                <th class="th-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowStudentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 7: EXPORT & REPORTS CENTER -->
+        <!-- ================================================================= -->
+        <div id="tab-export-reports" class="tab-pane">
+            
+            <div class="dashboard-header-bar">
+                <div>
+                    <h2>Academic Reports & Data Export Center</h2>
+                    <p class="subtitle">Generate clean PDF notices, styled Excel spreadsheets (.xlsx), and RFC-compliant CSVs</p>
+                </div>
+            </div>
+
+            <div class="export-cards-grid">
+                <div class="card export-card">
+                    <div class="export-card-icon bg-blue-subtle">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Cumulative Attendance Summary</h3>
+                    <p>Complete term-wise attendance register for all students with present, absent, percentages, and standing flags.</p>
+                    
+                    <div class="form-field">
+                        <label for="exportCumSection">Filter Section (Optional)</label>
+                        <select id="exportCumSection" name="exportCumSection" title="Filter Section (Optional)" aria-label="Filter Section (Optional)" class="form-control">
+                            <option value="">All Sections</option>
+                        </select>
+                    </div>
+
+                    <div class="export-actions-row">
+                        <button class="btn btn-primary" onclick="exportCumulative('pdf')">Download PDF</button>
+                        <button class="btn btn-outline-success" onclick="exportCumulative('excel')">Excel (.xlsx)</button>
+                        <button class="btn btn-outline-secondary" onclick="exportCumulative('csv')">CSV</button>
+                    </div>
+                </div>
+
+                <div class="card export-card">
+                    <div class="export-card-icon bg-danger-subtle">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                        </svg>
+                    </div>
+                    <h3>Low Attendance Defaulters List</h3>
+                    <p>Official department notice document containing students below threshold (<span id="exportDefaulterThresh">75%</span>) with shortfall counts.</p>
+
+                    <div class="export-actions-row mt-auto">
+                        <button class="btn btn-danger" onclick="exportDefaultersReport('pdf')">Defaulters PDF</button>
+                        <button class="btn btn-outline-success" onclick="exportDefaultersReport('excel')">Excel (.xlsx)</button>
+                        <button class="btn btn-outline-secondary" onclick="exportDefaultersReport('csv')">CSV</button>
+                    </div>
+                </div>
+
+                <div class="card export-card">
+                    <div class="export-card-icon bg-green-subtle">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                        </svg>
+                    </div>
+                    <h3>Specific Session Report</h3>
+                    <p>Export individual lecture/period session attendance with full student roster and signature placeholders.</p>
+
+                    <div class="form-field">
+                        <label for="exportSessionSelect">Select Session</label>
+                        <select id="exportSessionSelect" name="exportSessionSelect" title="Select Session" aria-label="Select Session" class="form-control"></select>
+                    </div>
+
+                    <div class="export-actions-row">
+                        <button class="btn btn-primary" onclick="exportSelectedSessionDirect('pdf')">Session PDF</button>
+                        <button class="btn btn-outline-success" onclick="exportSelectedSessionDirect('excel')">Excel (.xlsx)</button>
+                        <button class="btn btn-outline-secondary" onclick="exportSelectedSessionDirect('csv')">CSV</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 8: ROSTER & SUBJECTS MANAGEMENT -->
+        <!-- ================================================================= -->
+        <div id="tab-roster-management" class="tab-pane">
+            
+            <div class="dashboard-header-bar">
+                <div>
+                    <h2>Department Roster & Curriculum Configuration</h2>
+                    <p class="subtitle">Manage enrolled students, curriculum subjects, and section assignments</p>
+                </div>
+                <div class="quick-action-btns">
+                    <button class="btn btn-primary" onclick="openAddStudentModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Add New Student</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="openAddSubjectModal()">
+                        <span>Add Subject</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="box-header-flex">
+                    <div class="title-with-count">
+                        <h3>Enrolled Student Roster</h3>
+                        <span class="badge-pill primary" id="rosterTotalBadge">0 Students</span>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="rosterSearchInput" name="rosterSearchInput" title="Search roster" aria-label="Search roster" placeholder="Search roster..." oninput="filterAdminRosterTable()">
+                    </div>
+                </div>
+
+                <div class="table-container max-height-scroll-lg">
+                    <table class="data-table" id="adminRosterTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Roll Number</th>
+                                <th>Student Name</th>
+                                <th>Department</th>
+                                <th>Section</th>
+                                <th class="th-center">Classes Logged</th>
+                                <th class="th-center">Term Rate %</th>
+                                <th class="th-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminRosterTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- TAB 9: SYSTEM SETTINGS -->
+        <!-- ================================================================= -->
+        <div id="tab-system-settings" class="tab-pane">
+            
+            <div class="card settings-card">
+                <div class="settings-header">
+                    <h3>Institution & Attendance System Configuration</h3>
+                    <p class="subtitle">Global settings governing warning thresholds, defaults, and institution naming</p>
+                </div>
+
+                <form id="settingsForm" onsubmit="saveSystemSettings(event)">
+                    <div class="settings-form-grid">
+                        <div class="form-field span-full">
+                            <label for="settingCollegeName">College / University Name</label>
+                            <input type="text" id="settingCollegeName" name="settingCollegeName" title="College / University Name" aria-label="College / University Name" class="form-control" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="settingDeptName">Department Name</label>
+                            <input type="text" id="settingDeptName" name="settingDeptName" title="Department Name" aria-label="Department Name" class="form-control" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="settingThreshold">Low Attendance Alert Threshold (%)</label>
+                            <div class="input-group">
+                                <input type="number" id="settingThreshold" name="settingThreshold" title="Low Attendance Alert Threshold (%)" aria-label="Low Attendance Alert Threshold (%)" class="form-control" min="1" max="100" step="0.5" required>
+                                <span class="input-addon">%</span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="settingDefaultState">Default Attendance State for New Session</label>
+                            <select id="settingDefaultState" name="settingDefaultState" title="Default Attendance State for New Session" aria-label="Default Attendance State for New Session" class="form-control">
+                                <option value="Present">Present (All checked by default)</option>
+                                <option value="Absent">Absent (All unchecked by default)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-footer">
+                        <button type="submit" class="btn btn-primary btn-lg" id="saveSettingsBtn">
+                            <span>Save Configuration</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================= -->
+        <!-- STUDENT EXCLUSIVE TABS (RENDERED FOR STUDENT LOGINS) -->
+        <!-- ================================================================= -->
+
+        <!-- STUDENT DASHBOARD -->
+        <div id="tab-student-dashboard" class="tab-pane">
+            
+            <!-- Student Header Profile Card -->
+            <div class="card student-portal-hero">
+                <div class="student-hero-content">
+                    <div class="student-hero-meta">
+                        <div class="student-avatar-lg" id="studentHeroAvatar">ST</div>
+                        <div>
+                            <span class="student-portal-tag">Official Student Portal</span>
+                            <h2 id="studentHeroName">Student Name</h2>
+                            <div class="student-hero-pills">
+                                <span class="hero-pill roll" id="studentHeroRoll">Roll No</span>
+                                <span class="hero-pill dept" id="studentHeroDept">CAI • Section A</span>
+                                <span class="hero-pill status" id="studentHeroStatusBadge">Standing: Normal</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="student-hero-actions">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="openChangePasswordModal()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <span>Change Password</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance View Mode Selector -->
+            <div class="student-view-mode-tabs">
+                <button type="button" class="view-mode-btn active" id="btnModeOverall" onclick="switchStudentAttendanceMode('overall')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6"></path>
+                    </svg>
+                    <span>Overall Attendance</span>
+                </button>
+                <button type="button" class="view-mode-btn" id="btnModeMonthly" onclick="switchStudentAttendanceMode('monthly')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Monthly Attendance</span>
+                </button>
+                <button type="button" class="view-mode-btn" id="btnModeDaily" onclick="switchStudentAttendanceMode('daily')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                    <span>Daily & Calendar View</span>
+                </button>
+                <button type="button" class="view-mode-btn" id="btnModePredictor" onclick="switchStudentAttendanceMode('predictor')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Calculate Next % (Simulator)</span>
+                </button>
+            </div>
+
+            <!-- Monthly Selector Bar (Visible in Monthly Mode) -->
+            <div id="studentMonthlyControlBar" class="card monthly-control-card hidden mb-3">
+                <div class="month-selector-flex">
+                    <div class="month-selector-left">
+                        <label for="studentMonthSelect"><strong>Select Academic Month:</strong></label>
+                        <select id="studentMonthSelect" class="form-select-inline ml-2" onchange="onStudentMonthSelectChange(this.value)" title="Select Academic Month">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="month-badge-info" id="selectedMonthInfoBadge">
+                        Showing Month-wise Attendance Rate
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Selector Bar (Visible in Daily Mode) -->
+            <div id="studentDailyControlBar" class="card daily-control-card hidden mb-3">
+                <div class="daily-selector-flex">
+                    <div>
+                        <span class="text-muted text-xs font-bold uppercase">Selected Date:</span>
+                        <strong id="selectedDailyDateLabel" class="text-primary text-base ml-2">Sep 28, 2026</strong>
+                    </div>
+                    <div id="selectedDailyStatusChip">
+                        <span class="badge-pill success">Daily Summary</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Metric Cards Grid -->
+            <div class="student-kpi-grid">
+                <!-- Big Gauge Card -->
+                <div class="card student-gauge-card">
+                    <div class="gauge-header" id="studentGaugeHeaderLabel">Overall Attendance Rate</div>
+                    <div class="gauge-body">
+                        <div class="gauge-pct-circle" id="studentGaugeCircle">
+                            <span class="gauge-number" id="studentOverallPctDisplay">0.0%</span>
+                        </div>
+                        <div class="gauge-status-desc" id="studentStandingMessage">
+                            Your attendance is in good standing.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Three KPI Cards -->
+                <div class="student-stats-subgrid">
+                    <div class="card stat-card">
+                        <div class="stat-icon icon-blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-body">
+                            <span class="stat-label" id="studentKpiTotalLabel">Total Classes Held</span>
+                            <strong class="stat-value" id="studentTotalClassesDisplay">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="card stat-card stat-present">
+                        <div class="stat-icon icon-present">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-body">
+                            <span class="stat-label" id="studentKpiAttendedLabel">Classes Attended</span>
+                            <strong class="stat-value text-present" id="studentAttendedDisplay">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="card stat-card stat-absent">
+                        <div class="stat-icon icon-absent">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-body">
+                            <span class="stat-label" id="studentKpiMissedLabel">Classes Missed</span>
+                            <strong class="stat-value text-absent" id="studentMissedDisplay">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE ATTENDANCE CALENDAR -->
+            <div class="card mt-4" id="studentCalendarCard">
+                <div class="calendar-header-flex">
+                    <div class="cal-nav-left">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="changeStudentCalMonth(-1)">‹ Prev</button>
+                        <h3 id="studentCalMonthTitle" class="cal-month-title">September 2026</h3>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="changeStudentCalMonth(1)">Next ›</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm ml-2" onclick="goStudentCalToday()">Today</button>
+                    </div>
+                    <div class="cal-legend">
+                        <span class="cal-legend-item"><span class="legend-dot dot-present"></span> Present</span>
+                        <span class="cal-legend-item"><span class="legend-dot dot-partial"></span> Partial</span>
+                        <span class="cal-legend-item"><span class="legend-dot dot-absent"></span> Absent</span>
+                        <span class="cal-legend-item"><span class="legend-dot dot-empty"></span> No Class</span>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid (Mon to Sun) -->
+                <div class="student-calendar-grid">
+                    <div class="cal-day-header">Mon</div>
+                    <div class="cal-day-header">Tue</div>
+                    <div class="cal-day-header">Wed</div>
+                    <div class="cal-day-header">Thu</div>
+                    <div class="cal-day-header">Fri</div>
+                    <div class="cal-day-header">Sat</div>
+                    <div class="cal-day-header">Sun</div>
+                    <div id="studentCalDaysGrid" class="cal-days-container">
+                        <!-- Populated dynamically with date cells -->
+                    </div>
+                </div>
+
+                <!-- Selected Date Period Inspector Box -->
+                <div class="cal-day-inspector" id="studentDayInspector">
+                    <div class="inspector-header">
+                        <div>
+                            <h4 id="inspectorDateTitle">Selected Date Periods (Sep 28, 2026)</h4>
+                            <p class="text-xs text-muted" id="inspectorDateSubtitle">Click any day on the calendar to view its exact period attendance.</p>
+                        </div>
+                        <div id="inspectorDatePctBadge">
+                            <span class="badge-pill success">Daily: 100%</span>
+                        </div>
+                    </div>
+                    <div class="inspector-periods-list" id="inspectorPeriodsList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREDICTIVE ATTENDANCE CALCULATOR / SIMULATOR -->
+            <div class="card mt-4" id="studentPredictorCard">
+                <div class="box-header-flex">
+                    <div>
+                        <h3>🔮 Calculate Next Attendance Percentage</h3>
+                        <p class="table-subtitle">Simulate how upcoming class attendance on the next date will change your percentage</p>
+                    </div>
+                </div>
+
+                <div class="predictor-grid">
+                    <!-- Simulator 1: Next Classes Attend Impact -->
+                    <div class="predictor-box">
+                        <div class="pred-title-row">
+                            <span class="pred-icon">📈</span>
+                            <h4>Next Classes Attendance Impact</h4>
+                        </div>
+                        <p class="text-xs text-muted mb-3">Calculate your new percentage if you attend the upcoming classes on next date.</p>
+
+                        <div class="sim-quick-btns mb-3">
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(1)">+1 Class</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(2)">+2 Classes</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(4)">+1 Day (4 Classes)</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(8)">+2 Days (8 Classes)</button>
+                        </div>
+
+                        <div class="sim-input-row">
+                            <label for="simAttendCount">Upcoming classes to attend:</label>
+                            <div class="stepper-wrapper">
+                                <button type="button" class="btn-step" onclick="stepSimClasses(-1)">−</button>
+                                <input type="number" id="simAttendCount" min="0" max="100" value="4" oninput="calculateNextPercentage()">
+                                <button type="button" class="btn-step" onclick="stepSimClasses(1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="sim-result-box" id="simResultBox">
+                            <div class="sim-result-main">
+                                <div class="sim-pct-change">
+                                    <span class="old-pct" id="simCurrentPct">0.0%</span>
+                                    <span class="sim-arrow">➔</span>
+                                    <span class="new-pct" id="simPredictedPct">0.0%</span>
+                                </div>
+                                <div class="sim-diff-badge positive" id="simDiffBadge">+0.0% Gain</div>
+                            </div>
+                            <div class="sim-result-sub" id="simResultSubtext">
+                                Loading attendance calculation...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulator 2: Target Goal Planner -->
+                    <div class="predictor-box">
+                        <div class="pred-title-row">
+                            <span class="pred-icon">🎯</span>
+                            <h4>Target Percentage Goal Planner</h4>
+                        </div>
+                        <p class="text-xs text-muted mb-3">Find how many consecutive classes you must attend to achieve your target percentage.</p>
+
+                        <div class="sim-quick-btns mb-3">
+                            <button type="button" class="btn-quick-sim" onclick="setTargetPct(75)">75% (Minimum)</button>
+                            <button type="button" class="btn-quick-sim" onclick="setTargetPct(80)">80% (Safe)</button>
+                            <button type="button" class="btn-quick-sim" onclick="setTargetPct(85)">85% (Distinction)</button>
+                        </div>
+
+                        <div class="sim-input-row">
+                            <label for="simTargetPct">Desired Target Percentage:</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="simTargetPct" min="1" max="100" value="75" oninput="calculateTargetGoal()">
+                                <span class="suffix">%</span>
+                            </div>
+                        </div>
+
+                        <div class="goal-result-box" id="goalResultBox">
+                            <div class="goal-number-callout">
+                                <span class="goal-count" id="goalClassesNeeded">0</span>
+                                <span class="goal-label">Consecutive Classes Required</span>
+                            </div>
+                            <div class="goal-desc" id="goalDescText">
+                                Calculating goal requirement...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Month-wise Attendance Breakdown Grid -->
+            <div class="card mt-4" id="studentMonthBreakdownCard">
+                <div class="box-header-flex">
+                    <div>
+                        <h3>Month-wise Attendance Breakdown</h3>
+                        <p class="table-subtitle">Summary of attendance percentage recorded across each academic month</p>
+                    </div>
+                </div>
+                <div class="month-summary-grid" id="studentMonthSummaryGrid">
+                    <!-- Populated dynamically with month cards -->
+                </div>
+            </div>
+
+            <!-- Subject-wise Progress Cards -->
+            <div class="card mt-4">
+                <div class="box-header-flex">
+                    <div>
+                        <h3>Subject-wise Attendance Breakdown</h3>
+                        <p class="table-subtitle">Your individual attendance performance per course subject</p>
+                    </div>
+                </div>
+                <div class="student-subject-cards" id="studentSubjectCards">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Today's Schedule for Student -->
+            <div class="card mt-4">
+                <div class="box-header-flex">
+                    <div>
+                        <h3>Today's Class Schedule (<span id="studentTodayDayTitle">Today</span>)</h3>
+                        <p class="table-subtitle">Period timetable mapped for your section</p>
+                    </div>
+                    <button class="btn-link" onclick="switchTab('student-schedule')">View Full Weekly Schedule →</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Timing</th>
+                                <th>Subject</th>
+                                <th>Faculty</th>
+                                <th>Room</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTodayScheduleBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STUDENT TIMETABLE TAB -->
+        <div id="tab-student-schedule" class="tab-pane">
+            <div class="dashboard-header-bar">
+                <div>
+                    <h2>My Weekly Period Timetable</h2>
+                    <p class="subtitle">Complete weekly class schedule for your section</p>
+                </div>
+            </div>
+
+            <div class="card day-selector-card">
+                <div class="day-tabs-group" id="studentTimetableDayTabs">
+                    <button class="day-tab-btn active" onclick="filterStudentTimetableDay('Monday')">Monday</button>
+                    <button class="day-tab-btn" onclick="filterStudentTimetableDay('Tuesday')">Tuesday</button>
+                    <button class="day-tab-btn" onclick="filterStudentTimetableDay('Wednesday')">Wednesday</button>
+                    <button class="day-tab-btn" onclick="filterStudentTimetableDay('Thursday')">Thursday</button>
+                    <button class="day-tab-btn" onclick="filterStudentTimetableDay('Friday')">Friday</button>
+                    <button class="day-tab-btn" onclick="filterStudentTimetableDay('Saturday')">Saturday</button>
+                </div>
+            </div>
+
+            <div class="period-cards-grid" id="studentPeriodCardsGrid">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- STUDENT HISTORY LOG TAB -->
+        <div id="tab-student-history-log" class="tab-pane">
+            <div class="card">
+                <div class="box-header-flex">
+                    <div>
+                        <h2>My Attendance Log</h2>
+                        <p class="subtitle">Complete record of every class period marked for your roll number</p>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="studentLogSearch" name="studentLogSearch" title="Search subject or date" aria-label="Search subject or date" placeholder="Search subject or date..." oninput="filterStudentHistoryTable()">
+                    </div>
+                </div>
+
+                <div class="table-container max-height-scroll-lg">
+                    <table class="data-table" id="studentHistoryTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Period</th>
+                                <th>Subject</th>
+                                <th>Faculty</th>
+                                <th>Topic</th>
+                                <th class="th-center">My Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentHistoryTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <!-- ================================================================= -->
+    <!-- MODALS & DIALOGS -->
+    <!-- ================================================================= -->
+
+    <!-- EDIT / ADD PERIOD TIMETABLE MODAL (CTPO) -->
+    <div id="editPeriodModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon-title">
+                    <div class="session-detail-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="editPeriodModalTitle">Configure Period Slot</h3>
+                        <p class="modal-subtitle">CTPO Timetable & Subject Assignment</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeEditPeriodModal()">✕</button>
+            </div>
+            <form id="editPeriodForm" onsubmit="handleSavePeriod(event)">
+                <input type="hidden" id="editPeriodId" value="">
+                <div class="modal-body">
+                    <div class="session-config-grid">
+                        <div class="form-field">
+                            <label for="editPeriodDay">Day of Week</label>
+                            <select id="editPeriodDay" name="editPeriodDay" title="Day of Week" aria-label="Day of Week" class="form-control" required>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodNumber">Period Number</label>
+                            <select id="editPeriodNumber" name="editPeriodNumber" title="Period Number" aria-label="Period Number" class="form-control" onchange="onEditPeriodNumberChange()" required>
+                                <option value="1">Period 1 (09:00 - 09:50 AM)</option>
+                                <option value="2">Period 2 (09:50 - 10:40 AM)</option>
+                                <option value="3">Period 3 (10:50 - 11:40 AM)</option>
+                                <option value="4">Period 4 (11:40 - 12:30 PM)</option>
+                                <option value="5">Period 5 (01:20 - 02:10 PM)</option>
+                                <option value="6">Period 6 (02:10 - 03:00 PM)</option>
+                                <option value="7">Period 7 (03:00 - 03:50 PM)</option>
+                                <option value="8">Period 8 (03:50 - 04:40 PM)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodSection">Class / Section</label>
+                            <select id="editPeriodSection" name="editPeriodSection" title="Class / Section" aria-label="Class / Section" class="form-control" required>
+                                <option value="CAI-A">CAI-A</option>
+                                <option value="CAI-B">CAI-B</option>
+                                <option value="CSE-A">CSE-A</option>
+                                <option value="ECE-A">ECE-A</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodSubject">Subject for This Time</label>
+                            <select id="editPeriodSubject" name="editPeriodSubject" title="Subject for This Time" aria-label="Subject for This Time" class="form-control" required>
+                                <!-- Populated dynamically with all registered subjects -->
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodFaculty">Faculty Incharge</label>
+                            <input type="text" id="editPeriodFaculty" name="editPeriodFaculty" title="Faculty Incharge" aria-label="Faculty Incharge" class="form-control" placeholder="e.g. Dr. A. Sharma" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodRoom">Room / Lab Number</label>
+                            <input type="text" id="editPeriodRoom" name="editPeriodRoom" title="Room / Lab Number" aria-label="Room / Lab Number" class="form-control" placeholder="e.g. Room 301 or Lab 2" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodStartTime">Start Time</label>
+                            <input type="text" id="editPeriodStartTime" name="editPeriodStartTime" title="Start Time" aria-label="Start Time" class="form-control" placeholder="09:00 AM" required>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="editPeriodEndTime">End Time</label>
+                            <input type="text" id="editPeriodEndTime" name="editPeriodEndTime" title="End Time" aria-label="End Time" class="form-control" placeholder="09:50 AM" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditPeriodModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="savePeriodSubmitBtn">Save Period Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- CHANGE PASSWORD MODAL FOR STUDENTS -->
+    <div id="changePasswordModal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3>Update Student Password</h3>
+                <button class="modal-close-btn" onclick="closeChangePasswordModal()">✕</button>
+            </div>
+            <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                <div class="modal-body">
+                    <div class="form-field mb-3">
+                        <label for="oldPasswordInput">Current Password</label>
+                        <input type="password" id="oldPasswordInput" name="oldPasswordInput" title="Current Password" aria-label="Current Password" class="form-control" placeholder="Enter current password" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newPasswordInput">New Password</label>
+                        <input type="password" id="newPasswordInput" name="newPasswordInput" title="New Password" aria-label="New Password" class="form-control" placeholder="At least 4 characters" minlength="4" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="confirmPasswordInput">Confirm New Password</label>
+                        <input type="password" id="confirmPasswordInput" name="confirmPasswordInput" title="Confirm New Password" aria-label="Confirm New Password" class="form-control" placeholder="Re-enter new password" minlength="4" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- SESSION DETAILS VIEW MODAL -->
+    <div id="sessionDetailsModal" class="modal-backdrop hidden">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <div class="modal-icon-title">
+                    <div class="session-detail-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="modalSessionTitle">Session Attendance Record</h3>
+                        <p class="modal-subtitle" id="modalSessionSubtitle">--</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeSessionDetailsModal()">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="save-summary-grid mb-4">
+                    <div class="save-metric-item">
+                        <span class="label">Total Students</span>
+                        <strong id="modalSessionTotal">0</strong>
+                    </div>
+                    <div class="save-metric-item text-present">
+                        <span class="label">Present</span>
+                        <strong id="modalSessionPresent">0</strong>
+                    </div>
+                    <div class="save-metric-item text-absent">
+                        <span class="label">Absent</span>
+                        <strong id="modalSessionAbsent">0</strong>
+                    </div>
+                    <div class="save-metric-item">
+                        <span class="label">Rate</span>
+                        <strong class="text-primary" id="modalSessionRate">0.00%</strong>
+                    </div>
+                </div>
+
+                <div class="breakdown-columns">
+                    <div class="breakdown-box present-box">
+                        <div class="breakdown-box-header">
+                            <span class="box-title">Present Students (<span id="modalPresentCount">0</span>)</span>
+                        </div>
+                        <div class="breakdown-list" id="modalPresentList"></div>
+                    </div>
+
+                    <div class="breakdown-box absent-box">
+                        <div class="breakdown-box-header">
+                            <span class="box-title">Absent Students (<span id="modalAbsentCount">0</span>)</span>
+                        </div>
+                        <div class="breakdown-list" id="modalAbsentList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="export-dropdown-group">
+                    <button class="btn btn-outline-primary" id="modalExportPdfBtn">PDF</button>
+                    <button class="btn btn-outline-success" id="modalExportExcelBtn">Excel</button>
+                    <button class="btn btn-outline-secondary" id="modalExportCsvBtn">CSV</button>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="closeSessionDetailsModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ADD STUDENT MODAL -->
+    <div id="addStudentModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add New Student to Roster</h3>
+                <button class="modal-close-btn" onclick="closeAddStudentModal()">✕</button>
+            </div>
+            <form id="addStudentForm" onsubmit="handleAddStudent(event)">
+                <div class="modal-body">
+                    <div class="form-field mb-3">
+                        <label for="newStudentRoll">Roll Number / Registration ID</label>
+                        <input type="text" id="newStudentRoll" name="newStudentRoll" title="Roll Number / Registration ID" aria-label="Roll Number / Registration ID" class="form-control" placeholder="e.g. 25B21A4382" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newStudentName">Full Name</label>
+                        <input type="text" id="newStudentName" name="newStudentName" title="Full Name" aria-label="Full Name" class="form-control" placeholder="e.g. K. VINEETHA REDDY" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newStudentDept">Department</label>
+                        <input type="text" id="newStudentDept" name="newStudentDept" title="Department" aria-label="Department" class="form-control" value="CAI" placeholder="e.g. CAI" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newStudentSection">Section</label>
+                        <select id="newStudentSection" name="newStudentSection" title="Section" aria-label="Section" class="form-control" required>
+                            <option value="CAI-A">CAI-A</option>
+                            <option value="CAI-B">CAI-B</option>
+                            <option value="CSE-A">CSE-A</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddStudentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ADD SUBJECT MODAL -->
+    <div id="addSubjectModal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add Curriculum Subject</h3>
+                <button class="modal-close-btn" onclick="closeAddSubjectModal()">✕</button>
+            </div>
+            <form id="addSubjectForm" onsubmit="handleAddSubject(event)">
+                <div class="modal-body">
+                    <div class="form-field mb-3">
+                        <label for="newSubjectCode">Subject Code</label>
+                        <input type="text" id="newSubjectCode" name="newSubjectCode" title="Subject Code" aria-label="Subject Code" class="form-control" placeholder="e.g. CS406" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newSubjectName">Subject Name</label>
+                        <input type="text" id="newSubjectName" name="newSubjectName" title="Subject Name" aria-label="Subject Name" class="form-control" placeholder="e.g. Cloud Computing & DevOps" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newSubjectDept">Department</label>
+                        <input type="text" id="newSubjectDept" name="newSubjectDept" title="Department" aria-label="Department" class="form-control" value="CAI" placeholder="e.g. CAI" required>
+                    </div>
+                    <div class="form-field mb-3">
+                        <label for="newSubjectSem">Semester</label>
+                        <input type="text" id="newSubjectSem" name="newSubjectSem" title="Semester" aria-label="Semester" class="form-control" value="Semester 3" placeholder="e.g. Semester 3" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddSubjectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- GENERIC CONFIRMATION DIALOG -->
+    <div id="confirmModal" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">Please Confirm</h3>
+                <button class="modal-close-btn" onclick="closeConfirmModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal(false)">Cancel</button>
+                <button class="btn btn-danger" id="confirmModalActionBtn" onclick="closeConfirmModal(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="/static/script.js"></script>
+
+</body>
+</html>
