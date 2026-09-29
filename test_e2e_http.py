@@ -119,7 +119,7 @@ def run_e2e_http_test():
     prof = res.json()
     assert prof["success"] is True
     assert prof["student"]["roll_no"] == sample_roll
-    print(f"[PASS] Student profile for {prof['student']['name']} loaded: Attended {prof['stats']['present_classes']}/{prof['stats']['total_classes']} classes ({prof['stats']['percentage']}%)")
+    print(f"[PASS] Student profile for {prof['student']['name']} loaded: Attended {prof['stats']['present_days']}/{prof['stats']['total_days']} days ({prof['stats']['percentage']}%)")
 
     # 11. Low Attendance Defaulters Check
     print("\n11. Testing Low Attendance Defaulter List (GET /api/attendance/low)...")
@@ -259,7 +259,7 @@ def run_e2e_http_test():
     assert "subjects" in stu_dash
     assert "today_schedule" in stu_dash
     assert "history" in stu_dash
-    print(f"[PASS] Student Dashboard verified: Attendance Rate={stu_dash['stats']['percentage']}%, Attended={stu_dash['stats']['present_classes']}/{stu_dash['stats']['total_classes']} classes, Total Subjects={len(stu_dash['subjects'])}")
+    print(f"[PASS] Student Dashboard verified: Attendance Rate={stu_dash['stats']['percentage']}%, Attended={stu_dash['stats']['present_days']}/{stu_dash['stats']['total_days']} days, Total Subjects={len(stu_dash['subjects'])}")
 
     # Student Weekly Timetable Check
     res = student_session.get(f"{BASE_URL}/api/student/timetable")

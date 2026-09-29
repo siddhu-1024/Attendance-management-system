@@ -818,6 +818,75 @@ def get_subjects_for_period_time():
 
 
 # =============================================================================
+# DAY-WISE ATTENDANCE CALCULATION ENGINE
+# =============================================================================
+
+def get_all_students_day_wise_stats(student_list=None):
+    """
+    Calculate Day-Wise attendance stats for all (or given) students in bulk.
+    Full Day Only rule:
+    - On each unique working date, a student is Present (1.0) only if they attended ALL periods held on that date.
+    - If they miss even 1 period on that date, they are considered Absent (0.0) for that day.
+    - Overall Day-Wise Percentage = (Present Days / Total Working Days) * 100.
+    """
+    if student_list is None:
+        student_list = Student.query.filter_by(is_active=True).all()
+
+    roll_list = [s.roll_no for s in student_list]
+    if not roll_list:
+        return {}
+
+    records = AttendanceRecord.query.filter(AttendanceRecord.roll_no.in_(roll_list)).all()
+
+    # Map roll_no -> date_str -> {"total": 0, "present": 0}
+    student_date_map = {r: {} for r in roll_list}
+    student_class_counts = {r: {"total": 0, "present": 0} for r in roll_list}
+
+    for r in records:
+        sess = r.session
+        d_str = sess.date if sess else (r.created_at.strftime("%Y-%m-%d") if r.created_at else datetime.now().strftime("%Y-%m-%d"))
+        roll = r.roll_no
+
+        if roll not in student_date_map:
+            student_date_map[roll] = {}
+            student_class_counts[roll] = {"total": 0, "present": 0}
+
+        student_class_counts[roll]["total"] += 1
+        if r.status == "Present":
+            student_class_counts[roll]["present"] += 1
+
+        if d_str not in student_date_map[roll]:
+            student_date_map[roll][d_str] = {"total": 0, "present": 0}
+
+        student_date_map[roll][d_str]["total"] += 1
+        if r.status == "Present":
+            student_date_map[roll][d_str]["present"] += 1
+
+    stats_by_roll = {}
+    for roll in roll_list:
+        date_dict = student_date_map.get(roll, {})
+        tot_days = len(date_dict)
+        # Full Day Only: all periods on that date must be attended
+        pres_days = sum(1 for d, info in date_dict.items() if info["present"] == info["total"] and info["total"] > 0)
+        abs_days = tot_days - pres_days
+        pct = round((pres_days / tot_days) * 100, 2) if tot_days > 0 else 0.0
+
+        c_info = student_class_counts.get(roll, {"total": 0, "present": 0})
+
+        stats_by_roll[roll] = {
+            "total_days": tot_days,
+            "present_days": pres_days,
+            "absent_days": abs_days,
+            "total_classes": c_info["total"],
+            "present_classes": c_info["present"],
+            "absent_classes": c_info["total"] - c_info["present"],
+            "percentage": pct
+        }
+
+    return stats_by_roll
+
+
+# =============================================================================
 # STUDENTS & ROSTER APIS
 # =============================================================================
 
@@ -868,6 +937,7 @@ def get_students():
 
     students = query.order_by(Student.roll_no).all()
     threshold = get_low_attendance_threshold()
+    bulk_stats = get_all_students_day_wise_stats(students)
 
     data = []
     for student in students:
@@ -875,10 +945,11 @@ def get_students():
             if search_query not in student.name.lower() and search_query not in student.roll_no.lower():
                 continue
 
-        total_records = AttendanceRecord.query.filter_by(roll_no=student.roll_no).count()
-        present_records = AttendanceRecord.query.filter_by(roll_no=student.roll_no, status="Present").count()
-        absent_records = total_records - present_records
-        pct = round((present_records / total_records) * 100, 1) if total_records > 0 else 0.0
+        st_stat = bulk_stats.get(student.roll_no, {
+            "total_days": 0, "present_days": 0, "absent_days": 0,
+            "total_classes": 0, "present_classes": 0, "absent_classes": 0,
+            "percentage": 0.0
+        })
 
         data.append({
             "id": student.id,
@@ -886,11 +957,14 @@ def get_students():
             "name": student.name,
             "department": student.department,
             "section": student.section,
-            "total_classes": total_records,
-            "present_classes": present_records,
-            "absent_classes": absent_records,
-            "attendance_percentage": pct,
-            "is_low": (pct < threshold and total_records > 0)
+            "total_days": st_stat["total_days"],
+            "present_days": st_stat["present_days"],
+            "absent_days": st_stat["absent_days"],
+            "total_classes": st_stat["total_classes"],
+            "present_classes": st_stat["present_classes"],
+            "absent_classes": st_stat["absent_classes"],
+            "attendance_percentage": st_stat["percentage"],
+            "is_low": (st_stat["percentage"] < threshold and st_stat["total_days"] > 0)
         })
 
     return jsonify(data)
@@ -1264,40 +1338,67 @@ def dashboard_stats():
 
     total_enrolled = Student.query.filter_by(is_active=True).count()
     total_sessions = AttendanceSession.query.count()
-
-    today_sessions = AttendanceSession.query.filter_by(date=today_str).all()
-    today_sessions_count = len(today_sessions)
-    today_present = sum(s.present_count for s in today_sessions)
-    today_absent = sum(s.absent_count for s in today_sessions)
-    today_total_marks = today_present + today_absent
-    today_pct = round((today_present / today_total_marks) * 100, 2) if today_total_marks > 0 else 0.0
-
-    all_sessions = AttendanceSession.query.all()
-    overall_present = sum(s.present_count for s in all_sessions)
-    overall_absent = sum(s.absent_count for s in all_sessions)
-    overall_total = overall_present + overall_absent
-    overall_percentage = round((overall_present / overall_total) * 100, 2) if overall_total > 0 else 0.0
+    unique_dates_count = db.session.query(db.func.count(db.func.distinct(AttendanceSession.date))).scalar() or 0
 
     students = Student.query.filter_by(is_active=True).all()
+    bulk_stats = get_all_students_day_wise_stats(students)
+
+    # Today's day-wise stats (students attending all periods held today)
+    today_sessions = AttendanceSession.query.filter_by(date=today_str).all()
+    today_sessions_count = len(today_sessions)
+    today_present_students = 0
+    today_active_students = 0
+    today_pct = 0.0
+
+    if today_sessions_count > 0:
+        today_records = AttendanceRecord.query.join(AttendanceSession).filter(
+            AttendanceSession.date == today_str
+        ).all()
+        
+        today_by_student = {}
+        for r in today_records:
+            if r.roll_no not in today_by_student:
+                today_by_student[r.roll_no] = {"total": 0, "present": 0}
+            today_by_student[r.roll_no]["total"] += 1
+            if r.status == "Present":
+                today_by_student[r.roll_no]["present"] += 1
+
+        today_active_students = len(today_by_student)
+        today_present_students = sum(1 for s_info in today_by_student.values() if s_info["present"] == s_info["total"] and s_info["total"] > 0)
+        today_pct = round((today_present_students / today_active_students) * 100, 2) if today_active_students > 0 else 0.0
+
+    # Overall Day-Wise rate across all enrolled students
+    total_student_days = sum(s["total_days"] for s in bulk_stats.values())
+    total_student_present_days = sum(s["present_days"] for s in bulk_stats.values())
+    overall_percentage = round((total_student_present_days / total_student_days) * 100, 2) if total_student_days > 0 else 0.0
+
     low_students_list = []
-    
     for st in students:
-        total_st_records = AttendanceRecord.query.filter_by(roll_no=st.roll_no).count()
-        if total_st_records == 0:
+        st_stat = bulk_stats.get(st.roll_no)
+        if not st_stat or st_stat["total_days"] == 0:
             continue
-        present_st = AttendanceRecord.query.filter_by(roll_no=st.roll_no, status="Present").count()
-        absent_st = total_st_records - present_st
-        pct = round((present_st / total_st_records) * 100, 1)
+        pct = st_stat["percentage"]
 
         if pct < threshold:
+            t_ratio = threshold / 100.0
+            req = (t_ratio * st_stat["total_days"] - st_stat["present_days"]) / (1.0 - t_ratio) if t_ratio < 1.0 else 0
+            shortfall = max(0, int(req) + (1 if req > int(req) else 0))
+
             low_students_list.append({
                 "roll_no": st.roll_no,
                 "name": st.name,
                 "section": st.section,
-                "total": total_st_records,
-                "present": present_st,
-                "absent": absent_st,
-                "percentage": pct
+                "total": st_stat["total_days"],
+                "present": st_stat["present_days"],
+                "absent": st_stat["absent_days"],
+                "total_days": st_stat["total_days"],
+                "present_days": st_stat["present_days"],
+                "absent_days": st_stat["absent_days"],
+                "total_classes": st_stat["total_classes"],
+                "present_classes": st_stat["present_classes"],
+                "absent_classes": st_stat["absent_classes"],
+                "percentage": pct,
+                "shortfall": shortfall
             })
 
     recent_sessions = AttendanceSession.query.order_by(
@@ -1320,15 +1421,15 @@ def dashboard_stats():
     return jsonify({
         "today_date": today_str,
         "today_sessions_count": today_sessions_count,
-        "today_present": today_present,
-        "today_absent": today_absent,
+        "today_present_students": today_present_students,
+        "today_active_students": today_active_students,
         "today_percentage": today_pct,
 
         "students": total_enrolled,
         "total_sessions": total_sessions,
-        "total_records": overall_total,
-        "present": overall_present,
-        "absent": overall_absent,
+        "total_days": unique_dates_count,
+        "total_student_days": total_student_days,
+        "present_student_days": total_student_present_days,
         "percentage": overall_percentage,
 
         "threshold": threshold,
@@ -1343,24 +1444,31 @@ def dashboard_stats():
 def attendance_summary():
     threshold = get_low_attendance_threshold()
     students = Student.query.filter_by(is_active=True).order_by(Student.roll_no).all()
+    bulk_stats = get_all_students_day_wise_stats(students)
 
     result = []
     for student in students:
-        records = AttendanceRecord.query.filter_by(roll_no=student.roll_no).all()
-        total = len(records)
-        present = sum(1 for r in records if r.status == "Present")
-        absent = total - present
-        percentage = round((present / total) * 100, 2) if total else 0.0
+        st_stat = bulk_stats.get(student.roll_no, {
+            "total_days": 0, "present_days": 0, "absent_days": 0,
+            "total_classes": 0, "present_classes": 0, "absent_classes": 0,
+            "percentage": 0.0
+        })
 
         result.append({
             "roll_no": student.roll_no,
             "name": student.name,
             "section": student.section,
-            "total": total,
-            "present": present,
-            "absent": absent,
-            "percentage": percentage,
-            "is_low": (percentage < threshold and total > 0)
+            "total": st_stat["total_days"],
+            "present": st_stat["present_days"],
+            "absent": st_stat["absent_days"],
+            "total_days": st_stat["total_days"],
+            "present_days": st_stat["present_days"],
+            "absent_days": st_stat["absent_days"],
+            "total_classes": st_stat["total_classes"],
+            "present_classes": st_stat["present_classes"],
+            "absent_classes": st_stat["absent_classes"],
+            "percentage": st_stat["percentage"],
+            "is_low": (st_stat["percentage"] < threshold and st_stat["total_days"] > 0)
         })
 
     return jsonify(result)
@@ -1371,31 +1479,34 @@ def attendance_summary():
 def low_attendance():
     threshold = get_low_attendance_threshold()
     students = Student.query.filter_by(is_active=True).all()
+    bulk_stats = get_all_students_day_wise_stats(students)
 
     low_students = []
     for student in students:
-        records = AttendanceRecord.query.filter_by(roll_no=student.roll_no).all()
-        total = len(records)
-        if total == 0:
+        st_stat = bulk_stats.get(student.roll_no)
+        if not st_stat or st_stat["total_days"] == 0:
             continue
 
-        present = sum(1 for r in records if r.status == "Present")
-        absent = total - present
-        percentage = round((present / total) * 100, 2)
-
-        if percentage < threshold:
+        pct = st_stat["percentage"]
+        if pct < threshold:
             t_ratio = threshold / 100.0
-            required_attended = (t_ratio * total - present) / (1.0 - t_ratio) if t_ratio < 1 else 0
+            required_attended = (t_ratio * st_stat["total_days"] - st_stat["present_days"]) / (1.0 - t_ratio) if t_ratio < 1.0 else 0
             shortfall = max(0, int(required_attended) + (1 if required_attended > int(required_attended) else 0))
 
             low_students.append({
                 "roll_no": student.roll_no,
                 "name": student.name,
                 "section": student.section,
-                "total": total,
-                "present": present,
-                "absent": absent,
-                "percentage": percentage,
+                "total": st_stat["total_days"],
+                "present": st_stat["present_days"],
+                "absent": st_stat["absent_days"],
+                "total_days": st_stat["total_days"],
+                "present_days": st_stat["present_days"],
+                "absent_days": st_stat["absent_days"],
+                "total_classes": st_stat["total_classes"],
+                "present_classes": st_stat["present_classes"],
+                "absent_classes": st_stat["absent_classes"],
+                "percentage": pct,
                 "threshold": threshold,
                 "shortfall": shortfall
             })
@@ -1416,20 +1527,30 @@ def get_student_profile(roll_no):
     total_classes = len(records)
     present_classes = sum(1 for r in records if r.status == "Present")
     absent_classes = total_classes - present_classes
-    percentage = round((present_classes / total_classes) * 100, 2) if total_classes > 0 else 0.0
 
+    # Day-wise and subject-wise aggregation
+    by_date = {}
     subject_stats = {}
     history_log = []
 
     for r in records:
         sess = r.session
         subj = sess.subject_name if sess else "General"
-        
+        d_str = sess.date if sess else (r.created_at.strftime("%Y-%m-%d") if r.created_at else datetime.now().strftime("%Y-%m-%d"))
+        status = r.status or "Present"
+
+        if d_str not in by_date:
+            by_date[d_str] = {"total": 0, "present": 0, "absent": 0}
+        by_date[d_str]["total"] += 1
+        if status == "Present":
+            by_date[d_str]["present"] += 1
+        else:
+            by_date[d_str]["absent"] += 1
+
         if subj not in subject_stats:
             subject_stats[subj] = {"subject": subj, "total": 0, "present": 0, "absent": 0}
-        
         subject_stats[subj]["total"] += 1
-        if r.status == "Present":
+        if status == "Present":
             subject_stats[subj]["present"] += 1
         else:
             subject_stats[subj]["absent"] += 1
@@ -1439,10 +1560,15 @@ def get_student_profile(roll_no):
             "date": sess.date if sess else "-",
             "subject": subj,
             "period": f"Period {sess.period}" if sess else "-",
-            "status": r.status,
+            "status": status,
             "topic": sess.topic if sess else "-",
             "faculty": sess.faculty_name if sess else "Faculty"
         })
+
+    total_days = len(by_date)
+    present_days = sum(1 for d in by_date.values() if d["present"] == d["total"] and d["total"] > 0)
+    absent_days = total_days - present_days
+    percentage = round((present_days / total_days) * 100, 2) if total_days > 0 else 0.0
 
     subject_list = []
     for s_name, s_data in subject_stats.items():
@@ -1460,6 +1586,12 @@ def get_student_profile(roll_no):
 
     history_log.sort(key=lambda x: x["date"], reverse=True)
 
+    shortfall = 0
+    if percentage < threshold and total_days > 0:
+        t_ratio = threshold / 100.0
+        req = (t_ratio * total_days - present_days) / (1.0 - t_ratio) if t_ratio < 1.0 else 0
+        shortfall = max(0, int(req) + (1 if req > int(req) else 0))
+
     return jsonify({
         "success": True,
         "student": {
@@ -1471,12 +1603,16 @@ def get_student_profile(roll_no):
             "is_active": student.is_active
         },
         "stats": {
+            "total_days": total_days,
+            "present_days": present_days,
+            "absent_days": absent_days,
             "total_classes": total_classes,
             "present_classes": present_classes,
             "absent_classes": absent_classes,
             "percentage": percentage,
-            "is_low": (percentage < threshold and total_classes > 0),
-            "threshold": threshold
+            "is_low": (percentage < threshold and total_days > 0),
+            "threshold": threshold,
+            "shortfall": shortfall
         },
         "subjects": subject_list,
         "history": history_log
@@ -1511,7 +1647,6 @@ def get_student_dashboard():
     total_classes = len(records)
     present_classes = sum(1 for r in records if r.status == "Present")
     absent_classes = total_classes - present_classes
-    percentage = round((present_classes / total_classes) * 100, 2) if total_classes > 0 else 0.0
 
     subject_stats = {}
     history_log = []
@@ -1593,6 +1728,9 @@ def get_student_dashboard():
                 "total_classes": 0,
                 "present_classes": 0,
                 "absent_classes": 0,
+                "total_days": 0,
+                "present_days": 0,
+                "absent_days": 0,
                 "percentage": 0.0,
                 "days_count": 0,
                 "unique_dates": set(),
@@ -1617,37 +1755,62 @@ def get_student_dashboard():
             "faculty": sess.faculty_name if sess else "Faculty Incharge"
         })
 
-    # Finalize by_date calculations
+    # Finalize by_date calculations (Full Day Only rule)
+    total_days = len(by_date)
+    present_days = 0
+
     for d_k, d_v in by_date.items():
         t = d_v["total"]
         p = d_v["present"]
+        is_full_present = (p == t and t > 0)
+
         d_v["percentage"] = round((p / t) * 100, 1) if t > 0 else 0.0
-        if p == t and t > 0:
+        d_v["is_full_day_present"] = is_full_present
+
+        if is_full_present:
             d_v["status_type"] = "present"
+            present_days += 1
         elif p == 0 and t > 0:
             d_v["status_type"] = "absent"
         else:
             d_v["status_type"] = "partial"
+
         # Sort periods numerically
         d_v["periods"].sort(key=lambda item: int(item["period"]) if item["period"].isdigit() else 99)
 
-    # Finalize by_month calculations
+    absent_days = total_days - present_days
+    overall_percentage = round((present_days / total_days) * 100, 2) if total_days > 0 else 0.0
+
+    # Finalize by_month calculations (Day-Wise per month)
     available_months = []
     for m_k, m_v in by_month.items():
-        t = m_v["total_classes"]
-        p = m_v["present_classes"]
-        m_v["percentage"] = round((p / t) * 100, 1) if t > 0 else 0.0
-        m_v["days_count"] = len(m_v["unique_dates"])
-        m_v["is_low"] = (m_v["percentage"] < threshold and t > 0)
-        # Remove set before json serialization
+        m_dates = [d_v for d_v in by_date.values() if d_v["month_key"] == m_k]
+        m_tot_days = len(m_dates)
+        m_pres_days = sum(1 for d in m_dates if d.get("is_full_day_present"))
+        m_abs_days = m_tot_days - m_pres_days
+        m_pct = round((m_pres_days / m_tot_days) * 100, 1) if m_tot_days > 0 else 0.0
+
+        m_v["total_days"] = m_tot_days
+        m_v["present_days"] = m_pres_days
+        m_v["absent_days"] = m_abs_days
+        m_v["percentage"] = m_pct
+        m_v["days_count"] = m_tot_days
+        m_v["is_low"] = (m_pct < threshold and m_tot_days > 0)
         m_v.pop("unique_dates", None)
+
         available_months.append({
             "key": m_k,
             "name": m_v["month_name"],
-            "percentage": m_v["percentage"],
-            "total": t,
-            "present": p,
-            "absent": m_v["absent_classes"],
+            "percentage": m_pct,
+            "total": m_tot_days,
+            "present": m_pres_days,
+            "absent": m_abs_days,
+            "total_days": m_tot_days,
+            "present_days": m_pres_days,
+            "absent_days": m_abs_days,
+            "total_classes": m_v["total_classes"],
+            "present_classes": m_v["present_classes"],
+            "absent_classes": m_v["absent_classes"],
             "is_low": m_v["is_low"]
         })
 
@@ -1684,11 +1847,11 @@ def get_student_dashboard():
         "room": p.room or "Room 301"
     } for p in today_periods]
 
-    # Calculate shortfall if low
+    # Calculate shortfall in days if low
     shortfall = 0
-    if percentage < threshold and total_classes > 0:
+    if overall_percentage < threshold and total_days > 0:
         t_ratio = threshold / 100.0
-        req = (t_ratio * total_classes - present_classes) / (1.0 - t_ratio) if t_ratio < 1 else 0
+        req = (t_ratio * total_days - present_days) / (1.0 - t_ratio) if t_ratio < 1.0 else 0
         shortfall = max(0, int(req) + (1 if req > int(req) else 0))
 
     return jsonify({
@@ -1702,14 +1865,17 @@ def get_student_dashboard():
             "email": student.email or f"{student.roll_no.lower()}@college.edu"
         },
         "stats": {
+            "total_days": total_days,
+            "present_days": present_days,
+            "absent_days": absent_days,
             "total_classes": total_classes,
             "present_classes": present_classes,
             "absent_classes": absent_classes,
-            "percentage": percentage,
-            "is_low": (percentage < threshold and total_classes > 0),
+            "percentage": overall_percentage,
+            "is_low": (overall_percentage < threshold and total_days > 0),
             "threshold": threshold,
             "shortfall": shortfall,
-            "status_text": "Good Standing" if percentage >= threshold else f"Attendance Warning (< {threshold}%)"
+            "status_text": "Good Standing" if overall_percentage >= threshold else f"Attendance Warning (< {threshold}%)"
         },
         "by_date": by_date,
         "by_month": by_month,
@@ -1845,18 +2011,23 @@ def export_cumulative_file(file_format):
     only_low = request.args.get("only_low", "false").lower() == "true"
     section_filter = request.args.get("section")
 
-    students = Student.query.filter_by(is_active=True).order_by(Student.roll_no).all()
+    query = Student.query.filter_by(is_active=True)
+    if section_filter:
+        query = query.filter_by(section=section_filter)
+
+    students = query.order_by(Student.roll_no).all()
+    bulk_stats = get_all_students_day_wise_stats(students)
     summary = []
 
     for s in students:
-        if section_filter and s.section != section_filter:
-            continue
-        records = AttendanceRecord.query.filter_by(roll_no=s.roll_no).all()
-        total = len(records)
-        present = sum(1 for r in records if r.status == "Present")
-        absent = total - present
-        pct = round((present / total) * 100, 2) if total else 0.0
-        is_low = (pct < threshold and total > 0)
+        st_stat = bulk_stats.get(s.roll_no, {
+            "total_days": 0, "present_days": 0, "absent_days": 0,
+            "total_classes": 0, "present_classes": 0, "absent_classes": 0,
+            "percentage": 0.0
+        })
+
+        pct = st_stat["percentage"]
+        is_low = (pct < threshold and st_stat["total_days"] > 0)
 
         if only_low and not is_low:
             continue
@@ -1864,9 +2035,15 @@ def export_cumulative_file(file_format):
         summary.append({
             "roll_no": s.roll_no,
             "name": s.name,
-            "total": total,
-            "present": present,
-            "absent": absent,
+            "total": st_stat["total_days"],
+            "present": st_stat["present_days"],
+            "absent": st_stat["absent_days"],
+            "total_days": st_stat["total_days"],
+            "present_days": st_stat["present_days"],
+            "absent_days": st_stat["absent_days"],
+            "total_classes": st_stat["total_classes"],
+            "present_classes": st_stat["present_classes"],
+            "absent_classes": st_stat["absent_classes"],
             "percentage": pct,
             "is_low": is_low
         })

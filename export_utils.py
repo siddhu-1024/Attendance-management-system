@@ -62,11 +62,11 @@ def generate_cumulative_csv(students_summary, filters_info=None, college_name="S
     writer = csv.writer(output)
 
     writer.writerow([college_name])
-    writer.writerow(["CUMULATIVE STUDENT ATTENDANCE REPORT"])
+    writer.writerow(["CUMULATIVE DAY-WISE ATTENDANCE REPORT"])
     if filters_info:
         writer.writerow(["Filters:", filters_info])
     writer.writerow([])
-    writer.writerow(["S.No", "Roll Number", "Student Name", "Total Classes", "Present", "Absent", "Attendance %", "Status"])
+    writer.writerow(["S.No", "Roll Number", "Student Name", "Total Days", "Present Days", "Absent Days", "Day-wise %", "Status"])
 
     for idx, s in enumerate(students_summary, 1):
         status_flag = "Low Attendance" if s.get("is_low") else "Normal"
@@ -74,9 +74,9 @@ def generate_cumulative_csv(students_summary, filters_info=None, college_name="S
             idx,
             s.get("roll_no"),
             s.get("name"),
-            s.get("total"),
-            s.get("present"),
-            s.get("absent"),
+            s.get("total_days", s.get("total")),
+            s.get("present_days", s.get("present")),
+            s.get("absent_days", s.get("absent")),
             f"{s.get('percentage')}%",
             status_flag
         ])
@@ -236,7 +236,7 @@ def generate_cumulative_excel(students_summary, filters_info=None, threshold=75.
     ws["A1"].alignment = Alignment(horizontal="center")
 
     ws.merge_cells("A2:H2")
-    ws["A2"] = "CUMULATIVE ATTENDANCE SUMMARY"
+    ws["A2"] = "CUMULATIVE DAY-WISE ATTENDANCE SUMMARY"
     ws["A2"].font = font_sub
     ws["A2"].alignment = Alignment(horizontal="center")
 
@@ -245,7 +245,7 @@ def generate_cumulative_excel(students_summary, filters_info=None, threshold=75.
         ws.cell(row=curr_row, column=1, value=f"Filters: {filters_info}").font = font_bold
         curr_row += 1
 
-    headers = ["S.No", "Roll Number", "Student Name", "Total Classes", "Present", "Absent", "Attendance %", "Standing"]
+    headers = ["S.No", "Roll Number", "Student Name", "Total Days", "Present Days", "Absent Days", "Day-wise %", "Standing"]
     for col_idx, h in enumerate(headers, 1):
         cell = ws.cell(row=curr_row, column=col_idx, value=h)
         cell.font = font_header
@@ -262,9 +262,9 @@ def generate_cumulative_excel(students_summary, filters_info=None, threshold=75.
         c1 = ws.cell(row=curr_row, column=1, value=idx)
         c2 = ws.cell(row=curr_row, column=2, value=s.get("roll_no"))
         c3 = ws.cell(row=curr_row, column=3, value=s.get("name"))
-        c4 = ws.cell(row=curr_row, column=4, value=s.get("total"))
-        c5 = ws.cell(row=curr_row, column=5, value=s.get("present"))
-        c6 = ws.cell(row=curr_row, column=6, value=s.get("absent"))
+        c4 = ws.cell(row=curr_row, column=4, value=s.get("total_days", s.get("total")))
+        c5 = ws.cell(row=curr_row, column=5, value=s.get("present_days", s.get("present")))
+        c6 = ws.cell(row=curr_row, column=6, value=s.get("absent_days", s.get("absent")))
         c7 = ws.cell(row=curr_row, column=7, value=f"{pct:.1f}%")
         c8 = ws.cell(row=curr_row, column=8, value="⚠️ Low Attendance" if is_low else "Normal")
 
@@ -619,7 +619,7 @@ def generate_cumulative_pdf(students_summary, filters_info=None, threshold=75.0,
 
     elements.append(Paragraph(college_name.upper(), title_style))
     elements.append(Spacer(1, 4))
-    elements.append(Paragraph("CUMULATIVE ATTENDANCE & DEFAULTER SUMMARY", subtitle_style))
+    elements.append(Paragraph("CUMULATIVE DAY-WISE ATTENDANCE & DEFAULTER SUMMARY", subtitle_style))
     if filters_info:
         elements.append(Spacer(1, 2))
         elements.append(Paragraph(f"Criteria: {filters_info} | Low Attendance Threshold: {threshold}%", cell_center))
@@ -630,10 +630,10 @@ def generate_cumulative_pdf(students_summary, filters_info=None, threshold=75.0,
         Paragraph("S.No", th_style),
         Paragraph("Roll No", th_style),
         Paragraph("Student Name", th_style),
-        Paragraph("Classes", th_style),
+        Paragraph("Total Days", th_style),
         Paragraph("Present", th_style),
         Paragraph("Absent", th_style),
-        Paragraph("%", th_style),
+        Paragraph("Day %", th_style),
         Paragraph("Standing", th_style)
     ]]
 
@@ -648,9 +648,9 @@ def generate_cumulative_pdf(students_summary, filters_info=None, threshold=75.0,
             Paragraph(str(idx), cell_center),
             Paragraph(s.get("roll_no"), cell_center),
             Paragraph(s.get("name"), cell_style),
-            Paragraph(str(s.get("total")), cell_center),
-            Paragraph(str(s.get("present")), cell_center),
-            Paragraph(str(s.get("absent")), cell_center),
+            Paragraph(str(s.get("total_days", s.get("total"))), cell_center),
+            Paragraph(str(s.get("present_days", s.get("present"))), cell_center),
+            Paragraph(str(s.get("absent_days", s.get("absent"))), cell_center),
             pct_p,
             status_p
         ])

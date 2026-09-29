@@ -891,19 +891,19 @@
 
                         <div class="student-stat-pill-group">
                             <div class="pill-stat">
-                                <span class="lbl">Total Classes</span>
+                                <span class="lbl">Total Days</span>
                                 <strong id="profTotalClasses">0</strong>
                             </div>
                             <div class="pill-stat text-present">
-                                <span class="lbl">Attended</span>
+                                <span class="lbl">Present Days</span>
                                 <strong id="profPresentClasses">0</strong>
                             </div>
                             <div class="pill-stat text-absent">
-                                <span class="lbl">Missed</span>
+                                <span class="lbl">Absent Days</span>
                                 <strong id="profAbsentClasses">0</strong>
                             </div>
                             <div class="pill-stat pill-highlight">
-                                <span class="lbl">Overall Rate</span>
+                                <span class="lbl">Day-wise Rate</span>
                                 <strong id="profPercentage">0.0%</strong>
                             </div>
                         </div>
@@ -1002,11 +1002,11 @@
                                 <th>Roll Number</th>
                                 <th>Student Name</th>
                                 <th>Section</th>
-                                <th class="th-center">Total Classes</th>
-                                <th class="th-center">Attended</th>
-                                <th class="th-center">Missed</th>
-                                <th class="th-center">Rate %</th>
-                                <th class="th-center">Class Shortfall</th>
+                                <th class="th-center">Total Days</th>
+                                <th class="th-center">Present Days</th>
+                                <th class="th-center">Absent Days</th>
+                                <th class="th-center">Day-wise Rate %</th>
+                                <th class="th-center">Day Shortfall</th>
                                 <th class="th-center">Action</th>
                             </tr>
                         </thead>
@@ -1143,8 +1143,8 @@
                                 <th>Student Name</th>
                                 <th>Department</th>
                                 <th>Section</th>
-                                <th class="th-center">Classes Logged</th>
-                                <th class="th-center">Term Rate %</th>
+                                <th class="th-center">Working Days</th>
+                                <th class="th-center">Day-wise Rate %</th>
                                 <th class="th-center">Actions</th>
                             </tr>
                         </thead>
@@ -1327,7 +1327,7 @@
                             </svg>
                         </div>
                         <div class="stat-body">
-                            <span class="stat-label" id="studentKpiTotalLabel">Total Classes Held</span>
+                            <span class="stat-label" id="studentKpiTotalLabel">Total Working Days</span>
                             <strong class="stat-value" id="studentTotalClassesDisplay">0</strong>
                         </div>
                     </div>
@@ -1339,7 +1339,7 @@
                             </svg>
                         </div>
                         <div class="stat-body">
-                            <span class="stat-label" id="studentKpiAttendedLabel">Classes Attended</span>
+                            <span class="stat-label" id="studentKpiAttendedLabel">Full Days Attended</span>
                             <strong class="stat-value text-present" id="studentAttendedDisplay">0</strong>
                         </div>
                     </div>
@@ -1352,7 +1352,7 @@
                             </svg>
                         </div>
                         <div class="stat-body">
-                            <span class="stat-label" id="studentKpiMissedLabel">Classes Missed</span>
+                            <span class="stat-label" id="studentKpiMissedLabel">Days Missed</span>
                             <strong class="stat-value text-absent" id="studentMissedDisplay">0</strong>
                         </div>
                     </div>
@@ -1417,23 +1417,23 @@
                 </div>
 
                 <div class="predictor-grid">
-                    <!-- Simulator 1: Next Classes Attend Impact -->
+                    <!-- Simulator 1: Next Days Attend Impact -->
                     <div class="predictor-box">
                         <div class="pred-title-row">
                             <span class="pred-icon">📈</span>
-                            <h4>Next Classes Attendance Impact</h4>
+                            <h4>Next Days Attendance Impact</h4>
                         </div>
-                        <p class="text-xs text-muted mb-3">Calculate your new percentage if you attend the upcoming classes on next date.</p>
+                        <p class="text-xs text-muted mb-3">Calculate your new percentage if you attend upcoming full days.</p>
 
                         <div class="sim-quick-btns mb-3">
-                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(1)">+1 Class</button>
-                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(2)">+2 Classes</button>
-                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(4)">+1 Day (4 Classes)</button>
-                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(8)">+2 Days (8 Classes)</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(1)">+1 Day</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(2)">+2 Days</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(5)">+5 Days</button>
+                            <button type="button" class="btn-quick-sim" onclick="setSimClasses(10)">+10 Days</button>
                         </div>
 
                         <div class="sim-input-row">
-                            <label for="simAttendCount">Upcoming classes to attend:</label>
+                            <label for="simAttendCount">Upcoming full days to attend:</label>
                             <div class="stepper-wrapper">
                                 <button type="button" class="btn-step" onclick="stepSimClasses(-1)">−</button>
                                 <input type="number" id="simAttendCount" min="0" max="100" value="4" oninput="calculateNextPercentage()">
@@ -1462,7 +1462,7 @@
                             <span class="pred-icon">🎯</span>
                             <h4>Target Percentage Goal Planner</h4>
                         </div>
-                        <p class="text-xs text-muted mb-3">Find how many consecutive classes you must attend to achieve your target percentage.</p>
+                        <p class="text-xs text-muted mb-3">Find how many consecutive full days you must attend to achieve your target percentage.</p>
 
                         <div class="sim-quick-btns mb-3">
                             <button type="button" class="btn-quick-sim" onclick="setTargetPct(75)">75% (Minimum)</button>

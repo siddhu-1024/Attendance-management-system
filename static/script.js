@@ -800,19 +800,19 @@ function updateStudentKpiDisplay() {
     if (studentAttendanceMode === "overall" || studentAttendanceMode === "predictor") {
         headerLabel.textContent = "Overall Attendance Rate";
         pctDisplay.textContent = `${stats.percentage}%`;
-        kpiTotalLabel.textContent = "Total Classes Held";
-        kpiAttendedLabel.textContent = "Classes Attended";
-        kpiMissedLabel.textContent = "Classes Missed";
+        kpiTotalLabel.textContent = "Total Working Days";
+        kpiAttendedLabel.textContent = "Full Days Attended";
+        kpiMissedLabel.textContent = "Days Missed";
 
-        totalVal.textContent = stats.total_classes;
-        attendedVal.textContent = stats.present_classes;
-        missedVal.textContent = stats.absent_classes;
+        totalVal.textContent = stats.total_days !== undefined ? stats.total_days : stats.total_classes;
+        attendedVal.textContent = stats.present_days !== undefined ? stats.present_days : stats.present_classes;
+        missedVal.textContent = stats.absent_days !== undefined ? stats.absent_days : stats.absent_classes;
 
         if (stats.is_low) {
             pctCircle.className = "gauge-pct-circle warning";
             standingMsg.innerHTML = `
                 <span class="text-danger font-bold">Attendance Warning:</span> 
-                Your attendance is below ${threshold}%. Attend the next <strong>${stats.shortfall} classes</strong> to reach the required standard.
+                Your attendance is below ${threshold}%. Attend the next <strong>${stats.shortfall} full days</strong> to reach the required standard.
             `;
         } else {
             pctCircle.className = "gauge-pct-circle";
@@ -825,25 +825,32 @@ function updateStudentKpiDisplay() {
         const monthData = (currentStudentData.by_month && currentStudentData.by_month[studentSelectedMonthKey]) || {
             month_name: "Selected Month",
             percentage: 0.0,
+            total_days: 0,
+            present_days: 0,
+            absent_days: 0,
             total_classes: 0,
             present_classes: 0,
             absent_classes: 0,
             is_low: false
         };
 
+        const mTot = monthData.total_days !== undefined ? monthData.total_days : (monthData.total !== undefined ? monthData.total : monthData.total_classes);
+        const mPres = monthData.present_days !== undefined ? monthData.present_days : (monthData.present !== undefined ? monthData.present : monthData.present_classes);
+        const mAbs = monthData.absent_days !== undefined ? monthData.absent_days : (monthData.absent !== undefined ? monthData.absent : monthData.absent_classes);
+
         headerLabel.textContent = `${monthData.month_name} Attendance Rate`;
         pctDisplay.textContent = `${monthData.percentage}%`;
-        kpiTotalLabel.textContent = `${monthData.month_name} Classes`;
-        kpiAttendedLabel.textContent = "Attended in Month";
-        kpiMissedLabel.textContent = "Missed in Month";
+        kpiTotalLabel.textContent = `${monthData.month_name} Days`;
+        kpiAttendedLabel.textContent = "Full Days Attended";
+        kpiMissedLabel.textContent = "Days Missed";
 
-        totalVal.textContent = monthData.total_classes;
-        attendedVal.textContent = monthData.present_classes;
-        missedVal.textContent = monthData.absent_classes;
+        totalVal.textContent = mTot;
+        attendedVal.textContent = mPres;
+        missedVal.textContent = mAbs;
 
         const infoBadge = document.getElementById("selectedMonthInfoBadge");
         if (infoBadge) {
-            infoBadge.textContent = `${monthData.month_name}: ${monthData.percentage}% (${monthData.present_classes}/${monthData.total_classes} Attended)`;
+            infoBadge.textContent = `${monthData.month_name}: ${monthData.percentage}% (${mPres}/${mTot} Days Attended)`;
         }
 
         if (monthData.is_low) {
@@ -1101,8 +1108,8 @@ function calculateNextPercentage() {
     if (!currentStudentData || !currentStudentData.stats) return;
 
     const stats = currentStudentData.stats;
-    const currentPresent = stats.present_classes || 0;
-    const currentTotal = stats.total_classes || 0;
+    const currentPresent = stats.present_days !== undefined ? stats.present_days : (stats.present_classes || 0);
+    const currentTotal = stats.total_days !== undefined ? stats.total_days : (stats.total_classes || 0);
     const currentPct = stats.percentage || 0.0;
     const threshold = stats.threshold || 75.0;
 
@@ -1135,7 +1142,7 @@ function calculateNextPercentage() {
     if (subtextEl) {
         const thresholdReached = newPct >= threshold;
         subtextEl.innerHTML = `
-            Attending the next <strong>${count} classes</strong> consecutively on upcoming dates will make your record <strong>${newPresent} / ${newTotal} classes</strong>. 
+            Attending the next <strong>${count} full days</strong> consecutively on upcoming dates will make your record <strong>${newPresent} / ${newTotal} days</strong>. 
             ${thresholdReached ? '<span class="text-success font-bold">🎯 Target ' + threshold + '% Reached!</span>' : '<span class="text-warning font-bold">Still ' + (threshold - newPct).toFixed(1) + '% below threshold.</span>'}
         `;
     }
@@ -1153,8 +1160,8 @@ function calculateTargetGoal() {
     if (!currentStudentData || !currentStudentData.stats) return;
 
     const stats = currentStudentData.stats;
-    const currentPresent = stats.present_classes || 0;
-    const currentTotal = stats.total_classes || 0;
+    const currentPresent = stats.present_days !== undefined ? stats.present_days : (stats.present_classes || 0);
+    const currentTotal = stats.total_days !== undefined ? stats.total_days : (stats.total_classes || 0);
     const currentPct = stats.percentage || 0.0;
 
     const input = document.getElementById("simTargetPct");
@@ -1165,7 +1172,7 @@ function calculateTargetGoal() {
 
     if (currentTotal === 0) {
         if (countEl) countEl.textContent = "0";
-        if (descEl) descEl.textContent = "No classes logged yet.";
+        if (descEl) descEl.textContent = "No attendance days logged yet.";
         return;
     }
 
@@ -1177,18 +1184,18 @@ function calculateTargetGoal() {
 
     if (target >= 100) {
         if (countEl) countEl.textContent = "∞";
-        if (descEl) descEl.textContent = "100% attendance cannot be achieved once any class is missed.";
+        if (descEl) descEl.textContent = "100% attendance cannot be achieved once any day is missed.";
         return;
     }
 
     const tRatio = target / 100.0;
     const needed = (tRatio * currentTotal - currentPresent) / (1.0 - tRatio);
-    const classesRequired = Math.max(0, Math.ceil(needed));
+    const daysRequired = Math.max(0, Math.ceil(needed));
 
-    if (countEl) countEl.textContent = classesRequired;
+    if (countEl) countEl.textContent = daysRequired;
     if (descEl) {
         descEl.innerHTML = `
-            You need to attend the next <strong>${classesRequired} consecutive classes</strong> without missing to reach <strong>${target}%</strong> attendance.
+            You need to attend the next <strong>${daysRequired} consecutive full days</strong> without missing to reach <strong>${target}%</strong> attendance.
         `;
     }
 }
@@ -1868,7 +1875,7 @@ async function loadDashboardStats() {
                     <div class="dash-low-item">
                         <div class="student-meta">
                             <strong>${st.name}</strong>
-                            <div>${st.roll_no} • ${st.section} (${st.present}/${st.total} classes)</div>
+                            <div>${st.roll_no} • ${st.section} (${st.present}/${st.total} days)</div>
                         </div>
                         <div class="rate-badge">${st.percentage}%</div>
                     </div>
@@ -2080,9 +2087,9 @@ async function loadStudentProfile(rollNo) {
         document.getElementById("profDeptSec").textContent = `${student.department} • Section ${student.section}`;
         document.getElementById("profAvatar").textContent = student.name.substring(0, 2).toUpperCase();
 
-        document.getElementById("profTotalClasses").textContent = stats.total_classes;
-        document.getElementById("profPresentClasses").textContent = stats.present_classes;
-        document.getElementById("profAbsentClasses").textContent = stats.absent_classes;
+        document.getElementById("profTotalClasses").textContent = stats.total_days !== undefined ? stats.total_days : stats.total_classes;
+        document.getElementById("profPresentClasses").textContent = stats.present_days !== undefined ? stats.present_days : stats.present_classes;
+        document.getElementById("profAbsentClasses").textContent = stats.absent_days !== undefined ? stats.absent_days : stats.absent_classes;
         document.getElementById("profPercentage").textContent = `${stats.percentage}%`;
 
         const badge = document.getElementById("profStandingBadge");
@@ -2177,7 +2184,7 @@ async function loadLowAttendanceData() {
                     <span class="badge-pill danger font-bold">${st.percentage}%</span>
                 </td>
                 <td style="text-align: center;">
-                    <span class="badge-pill warning font-bold">Needs +${st.shortfall} classes</span>
+                    <span class="badge-pill warning font-bold">Needs +${st.shortfall} days</span>
                 </td>
                 <td style="text-align: center;">
                     <button class="btn btn-sm btn-outline-primary" onclick="viewStudentProfileDirect('${st.roll_no}')">View Profile</button>
@@ -2260,7 +2267,7 @@ async function loadAdminRoster() {
                 <td class="font-bold">${st.name}</td>
                 <td>${st.department}</td>
                 <td><span class="info-badge">${st.section}</span></td>
-                <td style="text-align: center;">${st.total_classes}</td>
+                <td style="text-align: center;">${st.total_days !== undefined ? st.total_days : st.total_classes} Days</td>
                 <td style="text-align: center;">
                     <span class="badge-pill ${st.is_low ? 'danger' : 'success'}">${st.attendance_percentage}%</span>
                 </td>

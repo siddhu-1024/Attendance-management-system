@@ -476,6 +476,74 @@ class TestSmartClassroomAttendanceSystem(unittest.TestCase):
         res_del = self.client.delete("/api/students/256Q1A4317")
         self.assertEqual(res_del.status_code, 403)
 
+    # 14. Day-Wise Attendance Percentage Calculation Logic (Full Day Only Rule)
+    def test_14_day_wise_attendance_calculation_logic(self):
+        self.login_faculty()
+        test_roll = "25B21A4376"
+
+        # Mark Day 1 (2026-10-01): 2 periods, student Present in both -> Full Day Present (1.0)
+        self.client.post("/api/attendance/session", json={
+            "date": "2026-10-01",
+            "subject_name": "Data Structures",
+            "section": "CAI-A",
+            "period": "1",
+            "records": {test_roll: "Present"},
+            "force_overwrite": True
+        })
+        self.client.post("/api/attendance/session", json={
+            "date": "2026-10-01",
+            "subject_name": "Operating Systems",
+            "section": "CAI-A",
+            "period": "2",
+            "records": {test_roll: "Present"},
+            "force_overwrite": True
+        })
+
+        # Mark Day 2 (2026-10-02): 2 periods, student Present in P1, Absent in P2 -> Missing 1 period -> Day Absent (0.0)
+        self.client.post("/api/attendance/session", json={
+            "date": "2026-10-02",
+            "subject_name": "Data Structures",
+            "section": "CAI-A",
+            "period": "1",
+            "records": {test_roll: "Present"},
+            "force_overwrite": True
+        })
+        self.client.post("/api/attendance/session", json={
+            "date": "2026-10-02",
+            "subject_name": "Operating Systems",
+            "section": "CAI-A",
+            "period": "2",
+            "records": {test_roll: "Absent"},
+            "force_overwrite": True
+        })
+
+        # Check student profile
+        res_prof = self.client.get(f"/api/attendance/student/{test_roll}")
+        self.assertEqual(res_prof.status_code, 200)
+        prof_data = res_prof.get_json()
+        stats = prof_data["stats"]
+
+        # Verify Day-Wise stats fields are present
+        self.assertIn("total_days", stats)
+        self.assertIn("present_days", stats)
+        self.assertIn("absent_days", stats)
+        self.assertGreaterEqual(stats["total_days"], 2)
+
+        # Student Dashboard check
+        res_dash = self.client.get(f"/api/student/dashboard?roll_no={test_roll}")
+        self.assertEqual(res_dash.status_code, 200)
+        dash_data = res_dash.get_json()
+        by_date = dash_data["by_date"]
+
+        # 2026-10-01 should be full day present (status_type: 'present')
+        self.assertIn("2026-10-01", by_date)
+        self.assertTrue(by_date["2026-10-01"]["is_full_day_present"])
+        self.assertEqual(by_date["2026-10-01"]["status_type"], "present")
+
+        # 2026-10-02 should be partial/absent (is_full_day_present: False)
+        self.assertIn("2026-10-02", by_date)
+        self.assertFalse(by_date["2026-10-02"]["is_full_day_present"])
+
 
 if __name__ == "__main__":
     unittest.main()
